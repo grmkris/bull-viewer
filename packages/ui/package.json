@@ -14,9 +14,10 @@
   "files": ["dist"],
   "scripts": {
     "dev": "vite dev --port 5173",
-    "build": "bun run build:lib && bun run build:standalone",
+    "build": "bun run build:lib && bun run build:standalone && bun run bundle-guard",
     "build:standalone": "VITE_BUILD_MODE=standalone vite build --outDir dist/standalone",
     "build:lib": "VITE_BUILD_MODE=lib vite build --outDir dist/lib",
+    "bundle-guard": "bun run scripts/bundle-guard.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,css}\""
@@ -47,7 +48,6 @@
     "dagre": "^0.8.5",
     "date-fns": "^4.1.0",
     "lucide-react": "^1.8.0",
-    "next-themes": "^0.4.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "shadcn": "^4.2.0",

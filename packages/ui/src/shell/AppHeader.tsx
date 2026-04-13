@@ -6,13 +6,22 @@ import { Button } from "@/components/ui/button"
 import { Kbd } from "@/components/ui/kbd"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { useTheme } from "../hooks/use-theme.ts"
+import { useScrollDirection } from "../hooks/use-scroll-direction.ts"
+import { cn } from "@/lib/utils"
 
 export function AppHeader() {
   const { resolved, setTheme } = useTheme()
   const params = useParams({ strict: false }) as { name?: string; id?: string }
+  const dir = useScrollDirection()
 
   return (
-    <header className="bg-card sticky top-0 z-20 flex h-12 items-center gap-2 border-b px-3">
+    <header
+      className={cn(
+        "bg-card sticky top-0 z-20 flex items-center gap-2 border-b px-3 transition-[height] duration-200",
+        // Mobile: collapse from 48 → 36px on scroll down
+        dir === "down" ? "h-9 md:h-12" : "h-12",
+      )}
+    >
       <SidebarTrigger className="md:hidden" />
 
       <nav

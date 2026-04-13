@@ -91,6 +91,7 @@ function RootLayout() {
         <CommandPalette />
         <Toaster
           position="bottom-right"
+          mobileOffset={{ top: 56, bottom: 72 }}
           toastOptions={{
             classNames: { toast: "font-sans" },
           }}
