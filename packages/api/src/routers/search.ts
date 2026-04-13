@@ -27,7 +27,7 @@ export const searchRouter = {
         query: z.string(),
         states: z.array(jobStateSchema).optional(),
         limit: z.number().int().min(1).max(100).default(20),
-      }),
+      })
     )
     .handler(async ({ context, input }): Promise<SearchResult> => {
       const queue = context.registry.getQueue(input.name);

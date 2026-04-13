@@ -16,6 +16,7 @@ import type {
   FlowNode,
   FlowEdge,
 } from "@bull-viewer/core/server";
+
 import {
   createOrpcClient,
   type BullViewerClient,
@@ -82,18 +83,21 @@ export interface ApiClient {
   jobAction(
     name: string,
     id: string,
-    action: "retry" | "remove" | "promote",
+    action: "retry" | "remove" | "promote"
   ): Promise<{ ok: true }>;
-  bulkAction(name: string, body: BulkActionRequest): Promise<BulkActionResponse>;
+  bulkAction(
+    name: string,
+    body: BulkActionRequest
+  ): Promise<BulkActionResponse>;
   searchJobs(
     name: string,
     query: string,
-    options?: { limit?: number; signal?: AbortSignal; states?: JobState[] },
+    options?: { limit?: number; signal?: AbortSignal; states?: JobState[] }
   ): Promise<SearchResult>;
   getFlow(name: string, id: string): Promise<FlowGraph>;
   getMetrics(
     name: string,
-    range: MetricsRange,
+    range: MetricsRange
   ): Promise<{ buckets: MetricBucket[] }>;
   /** Build the SSE URL for a queue. Caller wraps in EventSource. */
   eventsUrl(name: string): string;
@@ -151,7 +155,7 @@ export function createApiClient(apiBase: string): ApiClient {
           states: options.states,
           limit: options.limit ?? 20,
         },
-        { signal: options.signal },
+        { signal: options.signal }
       ),
 
     getFlow: (name, id) => client.jobs.flow({ name, id }),

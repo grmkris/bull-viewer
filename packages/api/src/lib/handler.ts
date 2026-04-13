@@ -89,7 +89,7 @@ function shouldEnableOpenApi(flag: boolean | undefined): boolean {
  * iterator plumbing. Everything else flows through a single typed router.
  */
 export function createQueuesApiHandler(
-  options: CreateQueuesApiHandlerOptions,
+  options: CreateQueuesApiHandlerOptions
 ): Handler {
   const basePath = normalizeBasePath(options.basePath);
 
@@ -178,7 +178,7 @@ export function createQueuesApiHandler(
 function sseResponse(
   req: Request,
   queueName: string,
-  connection: ConnectionOptions,
+  connection: ConnectionOptions
 ): Response {
   let unsubscribe: (() => void) | undefined;
   let closed = false;

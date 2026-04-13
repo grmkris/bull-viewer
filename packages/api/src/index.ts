@@ -13,7 +13,11 @@ export { appRouter } from "./router.ts";
 
 // Re-export SearchProvider so host apps can type their custom provider
 // before passing it to `createQueuesApiHandler({ searchProvider })`.
-export type { SearchProvider, SearchInput, SearchResult } from "@bull-viewer/core/server";
+export type {
+  SearchProvider,
+  SearchInput,
+  SearchResult,
+} from "@bull-viewer/core/server";
 
 // Router type is the canonical typed contract for client construction.
 // Consumers build a typed client via:

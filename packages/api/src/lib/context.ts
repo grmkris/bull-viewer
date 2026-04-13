@@ -57,15 +57,18 @@ export interface BuildContextOptions {
  */
 export async function buildContext(
   req: Request,
-  options: BuildContextOptions,
+  options: BuildContextOptions
 ): Promise<ViewerContext | Response> {
   const authorize = options.authorize ?? ALLOW_ALL;
   const result = await authorize(req);
   if (!result.ok) {
-    return new Response(JSON.stringify({ error: result.message ?? "unauthorized" }), {
-      status: result.status ?? 401,
-      headers: { "content-type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: result.message ?? "unauthorized" }),
+      {
+        status: result.status ?? 401,
+        headers: { "content-type": "application/json" },
+      }
+    );
   }
   return {
     registry: options.registry,

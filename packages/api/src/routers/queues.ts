@@ -70,13 +70,13 @@ export const queuesRouter = {
           const q = context.registry.getQueue(name);
           if (!q) return errorPlaceholder(name);
           return await getQueueSnapshot(q);
-        }),
+        })
       );
       const queues = settled.map((r, i) =>
-        r.status === "fulfilled" ? r.value : errorPlaceholder(names[i]!),
+        r.status === "fulfilled" ? r.value : errorPlaceholder(names[i]!)
       );
       return { queues };
-    },
+    }
   ),
 
   get: readProcedure
@@ -123,7 +123,7 @@ export const queuesRouter = {
           })
           .optional(),
         cap: z.number().int().positive().optional(),
-      }),
+      })
     )
     .handler(async ({ context, input }): Promise<BulkActionResult> => {
       if (!context.scopes.has(input.action)) {

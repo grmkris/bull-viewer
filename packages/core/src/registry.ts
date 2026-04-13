@@ -30,7 +30,8 @@ type GlobalWithCache = typeof globalThis & {
   __bullViewerConnIdents__?: WeakMap<object, string>;
 };
 const g = globalThis as GlobalWithCache;
-const cache: Map<string, QueueRegistry> = g[GLOBAL_KEY] ?? (g[GLOBAL_KEY] = new Map());
+const cache: Map<string, QueueRegistry> =
+  g[GLOBAL_KEY] ?? (g[GLOBAL_KEY] = new Map());
 
 // Side-table mapping a live IORedis instance to a stable identity string.
 // We can't hash IORedis's runtime state (sockets, pool, etc.) so we use
@@ -87,7 +88,8 @@ function fromPlainConnectionOptions(c: Record<string, unknown>): string {
   const path = (c.path as string | undefined) ?? "";
   const keyPrefix = (c.keyPrefix as string | undefined) ?? "";
   const tls = c.tls != null ? "tls" : "";
-  const passwordHash = c.password ? hashString(String(c.password)) : "";
+  const passwordHash =
+    typeof c.password === "string" ? hashString(c.password) : "";
   return `${host}:${port}/${db}/${family}/${user}/${path}/${keyPrefix}/${tls}/${passwordHash}`;
 }
 

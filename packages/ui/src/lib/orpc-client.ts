@@ -22,7 +22,9 @@ function absolutize(apiBase: string): string {
   if (/^https?:\/\//.test(stripped)) return stripped;
   if (typeof window !== "undefined" && window.location?.origin) {
     const origin = window.location.origin;
-    return stripped.startsWith("/") ? `${origin}${stripped}` : `${origin}/${stripped}`;
+    return stripped.startsWith("/")
+      ? `${origin}${stripped}`
+      : `${origin}/${stripped}`;
   }
   // SSR / non-browser context: RPCLink will throw if called; return as-is so
   // the error surfaces clearly rather than silently masking the misuse.
@@ -52,7 +54,8 @@ export function createOrpcClient(apiBase: string): OrpcClientBundle {
   const base = absolutize(apiBase);
   const link = new RPCLink({
     url: `${base}/rpc`,
-    fetch: (input, init) => globalThis.fetch(input, { ...init, credentials: "include" }),
+    fetch: (input, init) =>
+      globalThis.fetch(input, { ...init, credentials: "include" }),
     plugins: [
       new BatchLinkPlugin({
         groups: [{ condition: () => true, context: {} }],
