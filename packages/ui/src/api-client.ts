@@ -7,6 +7,30 @@ import type {
   Viewer,
 } from "@bull-viewer/core"
 
+export interface FlowNode {
+  id: string
+  queue: string
+  name: string
+  state: string
+  attemptsMade: number
+  maxAttempts?: number
+  timestamp: number
+  processedOn: number | null
+  finishedOn: number | null
+  parentId: string | null
+  durationMs: number | null
+  external: boolean
+}
+export interface FlowEdge {
+  from: string
+  to: string
+}
+export interface FlowGraph {
+  rootId: string
+  nodes: FlowNode[]
+  edges: FlowEdge[]
+}
+
 export interface JobsListParams {
   states?: JobState[]
   name?: string
@@ -54,6 +78,7 @@ export interface ApiClient {
     query: string,
     options?: { limit?: number; signal?: AbortSignal; states?: JobState[] },
   ): Promise<SearchResult>
+  getFlow(name: string, id: string): Promise<FlowGraph>
   /** Build the SSE URL for a queue. Caller wraps in EventSource. */
   eventsUrl(name: string): string
 }
@@ -111,6 +136,10 @@ export function createApiClient(apiBase: string): ApiClient {
       }
       return (await res.json()) as SearchResult
     },
+    getFlow: (name, id) =>
+      call(
+        `/queues/${encodeURIComponent(name)}/jobs/${encodeURIComponent(id)}/flow`,
+      ),
     eventsUrl: (name) => `${base}/queues/${encodeURIComponent(name)}/events`,
   }
 }

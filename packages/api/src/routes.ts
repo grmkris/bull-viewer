@@ -31,6 +31,7 @@ import { bulkActionHandler } from "./handlers/bulkAction.ts"
 import { eventsHandler } from "./handlers/events.ts"
 import { metricsHandler } from "./handlers/getMetrics.ts"
 import { searchHandler } from "./handlers/search.ts"
+import { getFlowHandler } from "./handlers/getFlow.ts"
 
 export const routes: Route[] = [
   { method: "GET", path: "/me", handler: meHandler },
@@ -79,6 +80,12 @@ export const routes: Route[] = [
     method: "GET",
     path: "/queues/:name/search",
     handler: searchHandler,
+    requiredScope: "read",
+  },
+  {
+    method: "GET",
+    path: "/queues/:name/jobs/:id/flow",
+    handler: getFlowHandler,
     requiredScope: "read",
   },
 ]

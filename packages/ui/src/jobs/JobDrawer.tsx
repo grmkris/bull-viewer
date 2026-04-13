@@ -17,6 +17,7 @@ import { useBullViewer } from "../context.tsx"
 import { StatusDot } from "../shell/StatusDot.tsx"
 import { Link } from "@tanstack/react-router"
 import { StackTraceViewer } from "./StackTraceViewer.tsx"
+import { FlowView } from "./FlowView.tsx"
 
 // Lazy-load CodeMirror so the ~150 KB of editor code only ships when the
 // drawer actually opens (and even then, only on the first job's data tab).
@@ -195,6 +196,21 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
                     stacktrace={job.stacktrace}
                   />
                 )}
+
+                <Section label="flow">
+                  <FlowView
+                    queueName={queueName}
+                    jobId={job.id}
+                    selectedId={job.id}
+                    onSelect={(id) => {
+                      window.dispatchEvent(
+                        new CustomEvent("bv:select-job", {
+                          detail: { id },
+                        }),
+                      )
+                    }}
+                  />
+                </Section>
 
                 <Section label="metadata">
                   <dl className="grid grid-cols-2 gap-2 font-mono text-[11px]">

@@ -1,4 +1,4 @@
-import { Queue, Worker } from "bullmq"
+import { FlowProducer, Queue, Worker } from "bullmq"
 import IORedis from "ioredis"
 
 const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379"
@@ -53,11 +53,48 @@ for (let i = 0; i < 5; i++) {
   await reports.add("weekly-summary", { week: i })
 }
 
+// FlowProducer demo — one parent with children. Worker is closed first so
+// the children stay in waiting (visible) instead of being immediately drained.
+// (Flow processing while workers run hangs the FlowProducer cleanup under
+// Bun — moving this AFTER worker shutdown keeps the demo data parked for
+// inspection.)
 // give the workers a moment to drain the completed/failed buffers
 await new Promise((r) => setTimeout(r, 1500))
 
 await emailWorker.close()
 await reportWorker.close()
+
+// Now seed a flow into reports — since the worker is closed, children stay
+// visible in the waiting state instead of being drained.
+const flow = new FlowProducer({ connection })
+await flow.add({
+  name: "nightly-report",
+  queueName: "reports",
+  data: { kind: "rollup", day: "2026-04-13" },
+  children: [
+    {
+      name: "fetch-orders",
+      queueName: "reports",
+      data: { source: "warehouse" },
+    },
+    {
+      name: "build-pdf",
+      queueName: "reports",
+      data: { template: "weekly" },
+      children: [
+        { name: "render-page", queueName: "reports", data: { page: 1 } },
+        { name: "render-page", queueName: "reports", data: { page: 2 } },
+      ],
+    },
+    {
+      name: "send-email",
+      queueName: "reports",
+      data: { to: "ceo@example.com" },
+    },
+  ],
+})
+await flow.close()
+
 await emails.close()
 await reports.close()
 await connection.quit()

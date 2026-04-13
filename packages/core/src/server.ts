@@ -35,3 +35,6 @@ export type {
   SearchProvider,
 } from "./bullmq/search.ts"
 export { RedisScanSearchProvider } from "./bullmq/search.ts"
+
+export type { FlowNode, FlowEdge, FlowGraph } from "./bullmq/flow.ts"
+export { getFlow, findFlowRoot } from "./bullmq/flow.ts"
