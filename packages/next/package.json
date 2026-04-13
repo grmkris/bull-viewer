@@ -1,0 +1,30 @@
+{
+  "name": "@bull-viewer/next",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bull-viewer/api": "workspace:*",
+    "@bull-viewer/core": "workspace:*",
+    "@bull-viewer/ui": "workspace:*",
+    "bullmq": "^5.40.0"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "next": "^15.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "typescript": "^5.9.3"
+  }
+}

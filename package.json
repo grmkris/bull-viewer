@@ -1,0 +1,21 @@
+{
+  "name": "bullmq-viewer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "typecheck": "bun --filter '*' typecheck",
+    "build": "bun --filter '@bull-viewer/*' build",
+    "dev:standalone": "bun --filter @bull-viewer/standalone dev",
+    "dev:next-embed": "bun --filter example-next-embed dev",
+    "seed": "bun --filter example-seed-bullmq seed"
+  },
+  "devDependencies": {
+    "shadcn": "^4.2.0",
+    "typescript": "^5.9.3"
+  }
+}

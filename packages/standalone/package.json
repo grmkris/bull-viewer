@@ -1,0 +1,26 @@
+{
+  "name": "@bull-viewer/standalone",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "bull-viewer": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "bun run --hot src/index.ts",
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bull-viewer/api": "workspace:*",
+    "@bull-viewer/core": "workspace:*",
+    "@bull-viewer/ui": "workspace:*",
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.14",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "typescript": "^5.9.3"
+  }
+}

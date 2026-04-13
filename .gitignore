@@ -1,0 +1,9 @@
+node_modules
+dist
+.next
+.nitro
+.output
+*.log
+.DS_Store
+.env
+.env.local
