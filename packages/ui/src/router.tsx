@@ -7,6 +7,7 @@ import {
   Outlet,
 } from "@tanstack/react-router"
 import type { RouterHistory } from "@tanstack/react-router"
+import { z } from "zod"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
@@ -17,6 +18,7 @@ import { AppSidebar } from "./shell/AppSidebar.tsx"
 import { AppHeader } from "./shell/AppHeader.tsx"
 import { MobileTabBar } from "./shell/MobileTabBar.tsx"
 import { CommandPalette } from "./shell/CommandPalette.tsx"
+import { JOB_STATES } from "./jobs/filterSchema.ts"
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -28,10 +30,18 @@ const indexRoute = createRoute({
   component: QueueList,
 })
 
+const queueSearchSchema = z.object({
+  states: z.array(z.enum(JOB_STATES)).optional(),
+  name: z.string().optional(),
+  job: z.string().optional(),
+  live: z.boolean().optional(),
+})
+
 const queueRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "queues/$name",
   component: QueueDetail,
+  validateSearch: queueSearchSchema,
 })
 
 const jobRoute = createRoute({

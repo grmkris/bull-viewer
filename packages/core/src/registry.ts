@@ -7,6 +7,7 @@ export interface RegistryOptions {
 }
 
 export interface QueueRegistry {
+  readonly connection: ConnectionOptions
   listQueueNames(): string[]
   getQueue(name: string): Queue | undefined
   close(): Promise<void>
@@ -24,6 +25,7 @@ export function createRegistry(options: RegistryOptions): QueueRegistry {
   }
 
   const registry: QueueRegistry = {
+    connection: options.connection,
     listQueueNames() {
       return [...queues.keys()]
     },

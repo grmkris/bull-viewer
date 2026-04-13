@@ -30,22 +30,47 @@ export async function getQueueSnapshot(queue: Queue): Promise<QueueSnapshot> {
   }
 }
 
+export interface ListJobsOptions {
+  states: JobState[]
+  start: number
+  end: number
+  nameFilter?: string
+}
+
 export async function listJobs(
   queue: Queue,
-  state: JobState,
-  start: number,
-  end: number,
+  options: ListJobsOptions,
 ): Promise<JobListPage> {
-  const [jobs, total] = await Promise.all([
-    queue.getJobs([state], start, end, true),
-    queue.getJobCountByTypes(state),
+  const states = options.states.length ? options.states : (["waiting"] as JobState[])
+
+  // Fetch a slightly wider window when name-filtering, so we can post-filter
+  // and still return a useful page count. Cap the over-fetch at 4x.
+  const window = options.end - options.start + 1
+  const fetchEnd = options.nameFilter
+    ? options.start + window * 4 - 1
+    : options.end
+
+  const [rawJobs, total] = await Promise.all([
+    queue.getJobs(states, options.start, fetchEnd, true),
+    queue.getJobCountByTypes(...states),
   ])
+
   const snapshots: JobSnapshot[] = []
-  for (const job of jobs) {
+  for (const job of rawJobs) {
     if (!job) continue
+    if (options.nameFilter && !job.name.includes(options.nameFilter)) continue
+    if (snapshots.length >= window) break
+    const state = await safeState(job, states[0]!)
     snapshots.push(await snapshot(job, state))
   }
-  return { jobs: snapshots, total, state, start, end }
+
+  return {
+    jobs: snapshots,
+    total,
+    state: states[0]!,
+    start: options.start,
+    end: options.start + snapshots.length - 1,
+  }
 }
 
 export async function getJob(
@@ -56,6 +81,17 @@ export async function getJob(
   if (!job) return null
   const state = (await job.getState()) as JobState | "unknown"
   return snapshot(job, state)
+}
+
+async function safeState(
+  job: Job,
+  fallback: JobState,
+): Promise<JobState | "unknown"> {
+  try {
+    return (await job.getState()) as JobState | "unknown"
+  } catch {
+    return fallback
+  }
 }
 
 async function snapshot(

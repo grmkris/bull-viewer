@@ -27,6 +27,8 @@ import { listJobsHandler } from "./handlers/listJobs.ts"
 import { getJobHandler } from "./handlers/getJob.ts"
 import { meHandler } from "./handlers/me.ts"
 import { jobActionHandler } from "./handlers/jobAction.ts"
+import { bulkActionHandler } from "./handlers/bulkAction.ts"
+import { eventsHandler } from "./handlers/events.ts"
 
 export const routes: Route[] = [
   { method: "GET", path: "/me", handler: meHandler },
@@ -53,5 +55,16 @@ export const routes: Route[] = [
     method: "POST",
     path: "/queues/:name/jobs/:id/:action",
     handler: jobActionHandler,
+  },
+  {
+    method: "POST",
+    path: "/queues/:name/jobs/bulk",
+    handler: bulkActionHandler,
+  },
+  {
+    method: "GET",
+    path: "/queues/:name/events",
+    handler: eventsHandler,
+    requiredScope: "read",
   },
 ]
