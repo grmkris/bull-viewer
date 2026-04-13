@@ -6,7 +6,10 @@
     "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start --port 3001",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "lint": "ultracite check",
+    "fix": "ultracite fix",
+    "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
     "@bull-viewer/next": "workspace:*",

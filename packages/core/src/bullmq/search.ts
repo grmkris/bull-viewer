@@ -1,27 +1,28 @@
-import type { Queue } from "bullmq"
-import type { JobSnapshot, JobState } from "../types.ts"
+import type { Queue } from "bullmq";
+
+import type { JobSnapshot, JobState } from "../types.ts";
 
 export interface SearchInput {
-  queue: Queue
-  query: string
-  states?: JobState[]
-  limit?: number
+  queue: Queue;
+  query: string;
+  states?: JobState[];
+  limit?: number;
 }
 
 export interface SearchResult {
-  jobs: JobSnapshot[]
-  truncated: boolean
-  scanned: number
-  durationMs: number
+  jobs: JobSnapshot[];
+  truncated: boolean;
+  scanned: number;
+  durationMs: number;
 }
 
 export interface SearchProvider {
-  search(input: SearchInput): Promise<SearchResult>
+  search(input: SearchInput): Promise<SearchResult>;
 }
 
-const DEFAULT_LIMIT = 20
-const SCAN_CAP = 10_000
-const TIME_BUDGET_MS = 2_000
+const DEFAULT_LIMIT = 20;
+const SCAN_CAP = 10_000;
+const TIME_BUDGET_MS = 2_000;
 
 const ALL_STATES: JobState[] = [
   "waiting",
@@ -32,16 +33,19 @@ const ALL_STATES: JobState[] = [
   "paused",
   "prioritized",
   "waiting-children",
-]
+];
 
 function looksLikeJobId(query: string): boolean {
-  return /^[A-Za-z0-9_-]{1,64}$/.test(query)
+  return /^[A-Za-z0-9_-]{1,64}$/.test(query);
 }
 
-async function snapshot(job: any, fallbackState: JobState): Promise<JobSnapshot> {
-  let state: JobState | "unknown" = fallbackState
+async function snapshot(
+  job: any,
+  fallbackState: JobState
+): Promise<JobSnapshot> {
+  let state: JobState | "unknown" = fallbackState;
   try {
-    state = (await job.getState()) as JobState | "unknown"
+    state = (await job.getState()) as JobState | "unknown";
   } catch {
     /* swallow */
   }
@@ -59,7 +63,7 @@ async function snapshot(job: any, fallbackState: JobState): Promise<JobSnapshot>
     processedOn: job.processedOn ?? null,
     finishedOn: job.finishedOn ?? null,
     state,
-  }
+  };
 }
 
 /**
@@ -74,20 +78,20 @@ async function snapshot(job: any, fallbackState: JobState): Promise<JobSnapshot>
  */
 export const RedisScanSearchProvider: SearchProvider = {
   async search({ queue, query, states, limit = DEFAULT_LIMIT }) {
-    const t0 = Date.now()
-    const trimmed = query.trim()
+    const t0 = Date.now();
+    const trimmed = query.trim();
     if (!trimmed) {
-      return { jobs: [], truncated: false, scanned: 0, durationMs: 0 }
+      return { jobs: [], truncated: false, scanned: 0, durationMs: 0 };
     }
 
-    const results: JobSnapshot[] = []
+    const results: JobSnapshot[] = [];
 
     // Tier 0: exact id lookup
     if (looksLikeJobId(trimmed)) {
       try {
-        const job = await queue.getJob(trimmed)
+        const job = await queue.getJob(trimmed);
         if (job) {
-          results.push(await snapshot(job, "waiting"))
+          results.push(await snapshot(job, "waiting"));
         }
       } catch {
         /* swallow */
@@ -100,54 +104,59 @@ export const RedisScanSearchProvider: SearchProvider = {
         truncated: false,
         scanned: 1,
         durationMs: Date.now() - t0,
-      }
+      };
     }
 
     // Tier 1: scan across requested states
-    const statesToScan = states && states.length > 0 ? states : ALL_STATES
-    let scanned = 0
-    let truncated = false
-    const lower = trimmed.toLowerCase()
-    const seen = new Set(results.map((j) => j.id))
+    const statesToScan = states && states.length > 0 ? states : ALL_STATES;
+    let scanned = 0;
+    let truncated = false;
+    const lower = trimmed.toLowerCase();
+    const seen = new Set(results.map((j) => j.id));
 
     outer: for (const state of statesToScan) {
       // Page through this state in chunks of 200
-      let offset = 0
-      const PAGE = 200
+      let offset = 0;
+      const PAGE = 200;
       while (true) {
         if (Date.now() - t0 > TIME_BUDGET_MS) {
-          truncated = true
-          break outer
+          truncated = true;
+          break outer;
         }
         if (scanned >= SCAN_CAP) {
-          truncated = true
-          break outer
+          truncated = true;
+          break outer;
         }
 
-        const remaining = Math.min(PAGE, SCAN_CAP - scanned)
-        const batch = await queue.getJobs([state], offset, offset + remaining - 1, true)
-        if (!batch || batch.length === 0) break
+        const remaining = Math.min(PAGE, SCAN_CAP - scanned);
+        const batch = await queue.getJobs(
+          [state],
+          offset,
+          offset + remaining - 1,
+          true
+        );
+        if (!batch || batch.length === 0) break;
 
         for (const job of batch) {
-          if (!job) continue
-          scanned++
-          if (seen.has(String(job.id))) continue
+          if (!job) continue;
+          scanned++;
+          if (seen.has(String(job.id))) continue;
 
           const haystacks = [
             job.name?.toLowerCase() ?? "",
             String(job.id).toLowerCase(),
             JSON.stringify(job.data ?? "").toLowerCase(),
             (job.failedReason ?? "").toLowerCase(),
-          ]
+          ];
           if (haystacks.some((h) => h.includes(lower))) {
-            results.push(await snapshot(job, state))
-            seen.add(String(job.id))
-            if (results.length >= limit) break outer
+            results.push(await snapshot(job, state));
+            seen.add(String(job.id));
+            if (results.length >= limit) break outer;
           }
         }
 
-        if (batch.length < remaining) break
-        offset += batch.length
+        if (batch.length < remaining) break;
+        offset += batch.length;
       }
     }
 
@@ -156,6 +165,6 @@ export const RedisScanSearchProvider: SearchProvider = {
       truncated,
       scanned,
       durationMs: Date.now() - t0,
-    }
+    };
   },
-}
+};

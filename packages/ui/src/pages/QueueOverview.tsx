@@ -1,114 +1,96 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
-import { useParams, useSearch, useNavigate } from "@tanstack/react-router"
-import type { AlignedData } from "uplot"
-import { useBullViewer } from "../context.tsx"
-import { UPlotChart } from "../charts/UPlotChart.tsx"
-import { readChartTheme } from "../charts/themeColors.ts"
-import { cn } from "@/lib/utils"
-import { StatusDot } from "../shell/StatusDot.tsx"
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useSearch, useNavigate } from "@tanstack/react-router";
+import { useMemo } from "react";
+import type { AlignedData } from "uplot";
 
-const RANGES = ["15m", "1h", "6h", "24h", "7d"] as const
-type Range = (typeof RANGES)[number]
+import { cn } from "@/lib/utils";
 
-interface MetricBucket {
-  ts: number
-  completed: number
-  failed: number
-  waiting: number | null
-  delayed: number | null
-  active: number | null
-  oldestWaiting: number | null
-  oldestActive: number | null
-  p50: number | null
-  p95: number | null
-  p99: number | null
-}
+import { readChartTheme } from "../charts/themeColors.ts";
+import { UPlotChart } from "../charts/UPlotChart.tsx";
+import { useBullViewer } from "../context.tsx";
+import { StatusDot } from "../shell/StatusDot.tsx";
+
+const RANGES = ["15m", "1h", "6h", "24h", "7d"] as const;
+type Range = (typeof RANGES)[number];
 
 export function QueueOverview() {
-  const { name } = useParams({ from: "/queues/$name" })
-  const search = useSearch({ from: "/queues/$name" })
-  const navigate = useNavigate()
-  const { api } = useBullViewer()
-  const range = (search.range as Range | undefined) ?? "1h"
+  const { name } = useParams({ from: "/queues/$name" });
+  const search = useSearch({ from: "/queues/$name" });
+  const navigate = useNavigate();
+  const { api } = useBullViewer();
+  const range = (search.range as Range | undefined) ?? "1h";
 
   const { data: queueData } = useQuery({
     queryKey: ["queues", name],
     queryFn: () => api.getQueue(name),
     refetchInterval: 10_000,
-  })
+  });
 
   const { data: metricsData, isLoading } = useQuery({
     queryKey: ["queues", name, "metrics", { range }],
-    queryFn: async () => {
-      const res = await fetch(
-        `${api.apiBase}/queues/${encodeURIComponent(name)}/metrics?range=${range}`,
-      )
-      if (!res.ok) throw new Error(`metrics ${res.status}`)
-      return res.json() as Promise<{ buckets: MetricBucket[] }>
-    },
+    queryFn: () => api.getMetrics(name, range),
     refetchInterval: 10_000,
-  })
+  });
 
-  const buckets = metricsData?.buckets ?? []
-  const counts = queueData?.queue?.counts
+  const buckets = metricsData?.buckets ?? [];
+  const counts = queueData?.queue?.counts;
 
   const setRange = (r: Range) => {
-    navigate({
+    void navigate({
       to: "/queues/$name",
       params: { name },
       search: (prev) => ({ ...prev, range: r }),
-    })
-  }
+    });
+  };
 
-  const lastBucket = buckets[buckets.length - 1]
+  const lastBucket = buckets[buckets.length - 1];
   const recentThroughput = useMemo(() => {
-    const last15 = buckets.slice(-15)
-    const total = last15.reduce((sum, b) => sum + b.completed + b.failed, 0)
-    return Math.round(total / Math.max(last15.length, 1))
-  }, [buckets])
+    const last15 = buckets.slice(-15);
+    const total = last15.reduce((sum, b) => sum + b.completed + b.failed, 0);
+    return Math.round(total / Math.max(last15.length, 1));
+  }, [buckets]);
   const recentFailureRate = useMemo(() => {
-    const last15 = buckets.slice(-15)
-    const c = last15.reduce((s, b) => s + b.completed, 0)
-    const f = last15.reduce((s, b) => s + b.failed, 0)
-    if (c + f === 0) return 0
-    return (f / (c + f)) * 100
-  }, [buckets])
+    const last15 = buckets.slice(-15);
+    const c = last15.reduce((s, b) => s + b.completed, 0);
+    const f = last15.reduce((s, b) => s + b.failed, 0);
+    if (c + f === 0) return 0;
+    return (f / (c + f)) * 100;
+  }, [buckets]);
 
   // ─── chart data ───
   const throughputData: AlignedData = useMemo(() => {
-    const ts = buckets.map((b) => Math.floor(b.ts / 1000))
-    const completed = buckets.map((b) => b.completed)
-    const failed = buckets.map((b) => b.failed)
-    return [ts, completed, failed]
-  }, [buckets])
+    const ts = buckets.map((b) => Math.floor(b.ts / 1000));
+    const completed = buckets.map((b) => b.completed);
+    const failed = buckets.map((b) => b.failed);
+    return [ts, completed, failed];
+  }, [buckets]);
 
   const failureRateData: AlignedData = useMemo(() => {
-    const ts = buckets.map((b) => Math.floor(b.ts / 1000))
+    const ts = buckets.map((b) => Math.floor(b.ts / 1000));
     const rate = buckets.map((b) => {
-      const total = b.completed + b.failed
-      return total === 0 ? 0 : (b.failed / total) * 100
-    })
-    return [ts, rate]
-  }, [buckets])
+      const total = b.completed + b.failed;
+      return total === 0 ? 0 : (b.failed / total) * 100;
+    });
+    return [ts, rate];
+  }, [buckets]);
 
   const percentileData: AlignedData = useMemo(() => {
-    const ts = buckets.map((b) => Math.floor(b.ts / 1000))
-    const p50 = buckets.map((b) => b.p50 ?? null)
-    const p95 = buckets.map((b) => b.p95 ?? null)
-    const p99 = buckets.map((b) => b.p99 ?? null)
-    return [ts, p50, p95, p99] as AlignedData
-  }, [buckets])
+    const ts = buckets.map((b) => Math.floor(b.ts / 1000));
+    const p50 = buckets.map((b) => b.p50 ?? null);
+    const p95 = buckets.map((b) => b.p95 ?? null);
+    const p99 = buckets.map((b) => b.p99 ?? null);
+    return [ts, p50, p95, p99] as AlignedData;
+  }, [buckets]);
 
   const backlogData: AlignedData = useMemo(() => {
-    const ts = buckets.map((b) => Math.floor(b.ts / 1000))
-    const waiting = buckets.map((b) => b.waiting ?? null)
-    return [ts, waiting] as AlignedData
-  }, [buckets])
+    const ts = buckets.map((b) => Math.floor(b.ts / 1000));
+    const waiting = buckets.map((b) => b.waiting ?? null);
+    return [ts, waiting] as AlignedData;
+  }, [buckets]);
 
-  const theme = useMemo(() => readChartTheme(), [])
+  const theme = useMemo(() => readChartTheme(), []);
 
   const throughputSeries = useMemo(
     () => [
@@ -126,8 +108,8 @@ export function QueueOverview() {
         width: 1.5,
       },
     ],
-    [theme],
-  )
+    [theme]
+  );
 
   const failureRateSeries = useMemo(
     () => [
@@ -139,8 +121,8 @@ export function QueueOverview() {
         width: 1.5,
       },
     ],
-    [theme],
-  )
+    [theme]
+  );
 
   const percentileSeries = useMemo(
     () => [
@@ -149,8 +131,8 @@ export function QueueOverview() {
       { label: "p95", stroke: theme.p95, width: 1.5 },
       { label: "p99", stroke: theme.p99, width: 2 },
     ],
-    [theme],
-  )
+    [theme]
+  );
 
   const backlogSeries = useMemo(
     () => [
@@ -162,10 +144,10 @@ export function QueueOverview() {
         width: 1.5,
       },
     ],
-    [theme],
-  )
+    [theme]
+  );
 
-  const allEmpty = buckets.every((b) => b.completed === 0 && b.failed === 0)
+  const allEmpty = buckets.every((b) => b.completed === 0 && b.failed === 0);
 
   return (
     <div className="space-y-4">
@@ -183,7 +165,7 @@ export function QueueOverview() {
                 "rounded-sm px-2 py-1 font-mono text-[11px] tnum transition-colors",
                 range === r
                   ? "bg-foreground/10 text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {r}
@@ -236,8 +218,8 @@ export function QueueOverview() {
           collecting metrics — nothing recorded in this range yet.
           <br />
           <span className="text-[10px]">
-            (a worker that processes jobs must be running to populate
-            historical data)
+            (a worker that processes jobs must be running to populate historical
+            data)
           </span>
         </div>
       )}
@@ -281,7 +263,7 @@ export function QueueOverview() {
         {lastBucket ? new Date(lastBucket.ts).toLocaleTimeString() : "—"}
       </div>
     </div>
-  )
+  );
 }
 
 function Tile({
@@ -290,10 +272,10 @@ function Tile({
   sub,
   state,
 }: {
-  label: string
-  value: string
-  sub: string
-  state: string
+  label: string;
+  value: string;
+  sub: string;
+  state: string;
 }) {
   return (
     <div className="bg-card rounded-md border p-3">
@@ -301,10 +283,12 @@ function Tile({
         <span>{label}</span>
         <StatusDot state={state} size={8} />
       </div>
-      <div className="mt-1.5 font-mono text-2xl font-semibold tnum">{value}</div>
+      <div className="mt-1.5 font-mono text-2xl font-semibold tnum">
+        {value}
+      </div>
       <div className="font-sans text-[10px] text-muted-foreground">{sub}</div>
     </div>
-  )
+  );
 }
 
 function ChartCard({
@@ -312,9 +296,9 @@ function ChartCard({
   hint,
   children,
 }: {
-  label: string
-  hint: string
-  children: React.ReactNode
+  label: string;
+  hint: string;
+  children: React.ReactNode;
 }) {
   return (
     <div className="bg-card rounded-md border p-3">
@@ -322,9 +306,11 @@ function ChartCard({
         <div className="font-sans text-[11px] uppercase tracking-wide text-foreground">
           {label}
         </div>
-        <div className="font-sans text-[10px] text-muted-foreground">{hint}</div>
+        <div className="font-sans text-[10px] text-muted-foreground">
+          {hint}
+        </div>
       </div>
       {children}
     </div>
-  )
+  );
 }

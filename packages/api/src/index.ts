@@ -1,10 +1,22 @@
-export type { Authorize, AuthorizeResult } from "./auth.ts"
-export { ALLOW_ALL } from "./auth.ts"
+export type {
+  Authorize,
+  AuthorizeResult,
+  ViewerContext,
+} from "./lib/context.ts";
+export { ALLOW_ALL } from "./lib/context.ts";
 
-export type { Route, RouteContext, RouteHandler } from "./routes.ts"
-export { routes } from "./routes.ts"
+export type { CreateQueuesApiHandlerOptions, Handler } from "./lib/handler.ts";
+export { createQueuesApiHandler } from "./lib/handler.ts";
 
-export type { CreateHandlerOptions } from "./handler.ts"
-export { createHandler, json } from "./handler.ts"
+export type { AppRouter, AppRouterClient } from "./router.ts";
+export { appRouter } from "./router.ts";
 
-export { setSearchProvider } from "./handlers/search.ts"
+// Re-export SearchProvider so host apps can type their custom provider
+// before passing it to `createQueuesApiHandler({ searchProvider })`.
+export type { SearchProvider, SearchInput, SearchResult } from "@bull-viewer/core/server";
+
+// Router type is the canonical typed contract for client construction.
+// Consumers build a typed client via:
+//   import type { AppRouter } from "@bull-viewer/api"
+//   import { createORPCClient } from "@orpc/client"
+//   const client: RouterClient<AppRouter> = createORPCClient(link)

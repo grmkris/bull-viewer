@@ -1,25 +1,27 @@
-"use client"
+"use client";
 
-import { Link, useParams } from "@tanstack/react-router"
-import { ChevronRightIcon, MoonIcon, RadioIcon, SunIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Kbd } from "@/components/ui/kbd"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { useTheme } from "../hooks/use-theme.ts"
-import { useScrollDirection } from "../hooks/use-scroll-direction.ts"
-import { cn } from "@/lib/utils"
+import { Link, useParams } from "@tanstack/react-router";
+import { ChevronRightIcon, MoonIcon, RadioIcon, SunIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+
+import { useScrollDirection } from "../hooks/use-scroll-direction.ts";
+import { useTheme } from "../hooks/use-theme.ts";
 
 export function AppHeader() {
-  const { resolved, setTheme } = useTheme()
-  const params = useParams({ strict: false }) as { name?: string; id?: string }
-  const dir = useScrollDirection()
+  const { resolved, setTheme } = useTheme();
+  const params = useParams({ strict: false }) as { name?: string; id?: string };
+  const dir = useScrollDirection();
 
   return (
     <header
       className={cn(
         "bg-card sticky top-0 z-20 flex items-center gap-2 border-b px-3 transition-[height] duration-200",
         // Mobile: collapse from 48 → 36px on scroll down
-        dir === "down" ? "h-9 md:h-12" : "h-12",
+        dir === "down" ? "h-9 md:h-12" : "h-12"
       )}
     >
       <SidebarTrigger className="md:hidden" />
@@ -61,8 +63,8 @@ export function AppHeader() {
         className="bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground hidden h-8 items-center gap-2 rounded-md border px-3 font-sans text-xs transition-colors md:flex"
         onClick={() => {
           window.dispatchEvent(
-            new KeyboardEvent("keydown", { key: "k", metaKey: true }),
-          )
+            new KeyboardEvent("keydown", { key: "k", metaKey: true })
+          );
         }}
         aria-label="Open command palette"
       >
@@ -87,5 +89,5 @@ export function AppHeader() {
         {resolved === "dark" ? <SunIcon /> : <MoonIcon />}
       </Button>
     </header>
-  )
+  );
 }

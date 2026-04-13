@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "seed": "bun run seed.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "lint": "ultracite check",
+    "fix": "ultracite fix",
+    "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
     "bullmq": "^5.40.0",

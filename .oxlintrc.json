@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "extends": ["ultracite/oxlint/core", "ultracite/oxlint/next"],
+  "ignorePatterns": [
+    ".next",
+    ".claude",
+    ".agents",
+    "dist",
+    "node_modules",
+    "routeTree.gen.ts",
+    "packages/ui/dist",
+    "packages/ui/src/components/ui",
+    "examples/next-embed/.next",
+    "examples/next-embed/next-env.d.ts"
+  ],
+  "rules": {
+    "jest/require-hook": "off",
+    "oxc/no-barrel-file": "off",
+    "eslint/no-void": ["error", { "allowAsStatement": true }]
+  }
+}

@@ -1,10 +1,10 @@
 interface SparklineProps {
-  points: number[]
-  width?: number
-  height?: number
-  stroke?: string
-  fill?: string
-  className?: string
+  points: number[];
+  width?: number;
+  height?: number;
+  stroke?: string;
+  fill?: string;
+  className?: string;
 }
 
 /**
@@ -31,22 +31,22 @@ export function Sparkline({
           strokeDasharray="2 3"
         />
       </svg>
-    )
+    );
   }
 
-  const max = Math.max(...points, 1)
-  const min = Math.min(...points, 0)
-  const span = max - min || 1
-  const stepX = points.length > 1 ? width / (points.length - 1) : width
-  const yFor = (v: number) => height - 2 - ((v - min) / span) * (height - 4)
+  const max = Math.max(...points, 1);
+  const min = Math.min(...points, 0);
+  const span = max - min || 1;
+  const stepX = points.length > 1 ? width / (points.length - 1) : width;
+  const yFor = (v: number) => height - 2 - ((v - min) / span) * (height - 4);
 
   const linePath = points
     .map((v, i) => `${i === 0 ? "M" : "L"} ${i * stepX} ${yFor(v)}`)
-    .join(" ")
+    .join(" ");
 
   const areaPath = fill
     ? `${linePath} L ${(points.length - 1) * stepX} ${height} L 0 ${height} Z`
-    : null
+    : null;
 
   return (
     <svg
@@ -66,5 +66,5 @@ export function Sparkline({
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }

@@ -1,22 +1,23 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { useVirtualizer } from "@tanstack/react-virtual"
-import type { JobSnapshot, JobState } from "@bull-viewer/core"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { useBullViewer } from "../context.tsx"
-import { useShortcuts } from "../hooks/use-shortcuts.ts"
-import { JobRow } from "./JobRow.tsx"
+import type { JobSnapshot, JobState } from "@bull-viewer/core";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { useEffect, useRef, useState } from "react";
+
+import { useBullViewer } from "../context.tsx";
+import { useShortcuts } from "../hooks/use-shortcuts.ts";
+import { JobRow } from "./JobRow.tsx";
 
 interface JobsTableProps {
-  queueName: string
-  states: JobState[]
-  nameFilter?: string
-  selectedJobId?: string
-  onOpen: (id: string) => void
+  queueName: string;
+  states: JobState[];
+  nameFilter?: string;
+  selectedJobId?: string;
+  onOpen: (id: string) => void;
 }
 
-const PAGE_SIZE = 50
+const PAGE_SIZE = 50;
 
 export function JobsTable({
   queueName,
@@ -25,13 +26,13 @@ export function JobsTable({
   selectedJobId,
   onOpen,
 }: JobsTableProps) {
-  const { api } = useBullViewer()
-  const queryClient = useQueryClient()
-  const parentRef = useRef<HTMLDivElement>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set())
+  const { api } = useBullViewer();
+  const queryClient = useQueryClient();
+  const parentRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [multiSelected, setMultiSelected] = useState<Set<string>>(new Set());
 
-  const stateKey = states.slice().sort().join(",")
+  const stateKey = states.slice().sort().join(",");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["queues", queueName, "jobs", { stateKey, nameFilter }],
@@ -43,113 +44,125 @@ export function JobsTable({
         end: PAGE_SIZE - 1,
       }),
     refetchInterval: 5_000,
-  })
+  });
 
-  const jobs: JobSnapshot[] = data?.jobs ?? []
-  const total = data?.total ?? 0
+  const jobs: JobSnapshot[] = data?.jobs ?? [];
+  const total = data?.total ?? 0;
 
   // Reset active index + multi-select when filters change
   useEffect(() => {
-    setActiveIndex(0)
-    setMultiSelected(new Set())
-  }, [stateKey, nameFilter, queueName])
+    setActiveIndex(0);
+    setMultiSelected(new Set());
+  }, [stateKey, nameFilter, queueName]);
 
   const virtualizer = useVirtualizer({
     count: jobs.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 32,
     overscan: 8,
-  })
+  });
 
   // j/k navigation — opens the drawer at activeIndex
   useShortcuts({
     j: () => {
       setActiveIndex((i) => {
-        const next = Math.min(i + 1, jobs.length - 1)
-        const job = jobs[next]
-        if (job) onOpen(job.id)
-        virtualizer.scrollToIndex(next, { align: "auto" })
-        return next
-      })
+        const next = Math.min(i + 1, jobs.length - 1);
+        const job = jobs[next];
+        if (job) onOpen(job.id);
+        virtualizer.scrollToIndex(next, { align: "auto" });
+        return next;
+      });
     },
     k: () => {
       setActiveIndex((i) => {
-        const next = Math.max(i - 1, 0)
-        const job = jobs[next]
-        if (job) onOpen(job.id)
-        virtualizer.scrollToIndex(next, { align: "auto" })
-        return next
-      })
+        const next = Math.max(i - 1, 0);
+        const job = jobs[next];
+        if (job) onOpen(job.id);
+        virtualizer.scrollToIndex(next, { align: "auto" });
+        return next;
+      });
     },
     Enter: () => {
-      const job = jobs[activeIndex]
-      if (job) onOpen(job.id)
+      const job = jobs[activeIndex];
+      if (job) onOpen(job.id);
     },
     x: () => {
-      const job = jobs[activeIndex]
-      if (!job) return
+      const job = jobs[activeIndex];
+      if (!job) return;
       setMultiSelected((prev) => {
-        const next = new Set(prev)
-        if (next.has(job.id)) next.delete(job.id)
-        else next.add(job.id)
-        return next
-      })
+        const next = new Set(prev);
+        if (next.has(job.id)) next.delete(job.id);
+        else next.add(job.id);
+        return next;
+      });
     },
-  })
+  });
 
   const handleClick = (id: string, e: React.MouseEvent) => {
     if (e.shiftKey && multiSelected.size > 0) {
-      const idx = jobs.findIndex((j) => j.id === id)
-      const lastSelectedIdx = jobs.findIndex((j) => multiSelected.has(j.id))
-      const [from, to] = idx > lastSelectedIdx ? [lastSelectedIdx, idx] : [idx, lastSelectedIdx]
+      const idx = jobs.findIndex((j) => j.id === id);
+      const lastSelectedIdx = jobs.findIndex((j) => multiSelected.has(j.id));
+      const [from, to] =
+        idx > lastSelectedIdx ? [lastSelectedIdx, idx] : [idx, lastSelectedIdx];
       setMultiSelected((prev) => {
-        const next = new Set(prev)
+        const next = new Set(prev);
         for (let i = from; i <= to; i++) {
-          const j = jobs[i]
-          if (j) next.add(j.id)
+          const j = jobs[i];
+          if (j) next.add(j.id);
         }
-        return next
-      })
-      return
+        return next;
+      });
+      return;
     }
-    setActiveIndex(jobs.findIndex((j) => j.id === id))
-    onOpen(id)
-  }
+    setActiveIndex(jobs.findIndex((j) => j.id === id));
+    onOpen(id);
+  };
 
   const handleToggle = (id: string) => {
     setMultiSelected((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // Live invalidation hook for SSE-driven refresh (wired by parent via useLiveTail)
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { queue: string }
+      const detail = (e as CustomEvent).detail as { queue: string };
       if (detail.queue === queueName) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: ["queues", queueName, "jobs"],
-        })
+        });
       }
-    }
-    window.addEventListener("bv:live-event", handler)
-    return () => window.removeEventListener("bv:live-event", handler)
-  }, [queueName, queryClient])
+    };
+    window.addEventListener("bv:live-event", handler);
+    return () => window.removeEventListener("bv:live-event", handler);
+  }, [queueName, queryClient]);
 
   if (error) {
     return (
       <div className="p-6 font-mono text-sm text-status-failed">
         {error instanceof Error ? error.message : String(error)}
       </div>
-    )
+    );
   }
 
   return (
-    <div className="flex h-full flex-col table-container" style={{ containerType: "inline-size", containerName: "jobs" } as React.CSSProperties}>
-      <div className="bg-card sticky top-0 z-10 flex items-center gap-3 border-b px-3 font-sans text-[10px] tracking-wide uppercase text-muted-foreground" style={{ height: "28px" }}>
+    <div
+      className="flex h-full flex-col table-container"
+      style={
+        {
+          containerType: "inline-size",
+          containerName: "jobs",
+        } as React.CSSProperties
+      }
+    >
+      <div
+        className="bg-card sticky top-0 z-10 flex items-center gap-3 border-b px-3 font-sans text-[10px] tracking-wide uppercase text-muted-foreground"
+        style={{ height: "28px" }}
+      >
         <div className="shrink-0 w-4" />
         <div className="shrink-0 w-4" />
         <div className="shrink-0 w-28">id</div>
@@ -161,7 +174,9 @@ export function JobsTable({
 
       <div ref={parentRef} className="flex-1 overflow-auto">
         {isLoading && jobs.length === 0 && (
-          <div className="p-6 font-mono text-sm text-muted-foreground">loading…</div>
+          <div className="p-6 font-mono text-sm text-muted-foreground">
+            loading…
+          </div>
         )}
         {!isLoading && jobs.length === 0 && (
           <div className="p-6 font-mono text-sm text-muted-foreground">
@@ -170,10 +185,12 @@ export function JobsTable({
         )}
 
         {jobs.length > 0 && (
-          <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
+          <div
+            style={{ height: virtualizer.getTotalSize(), position: "relative" }}
+          >
             {virtualizer.getVirtualItems().map((vRow) => {
-              const job = jobs[vRow.index]
-              if (!job) return null
+              const job = jobs[vRow.index];
+              if (!job) return null;
               return (
                 <div
                   key={job.id}
@@ -195,14 +212,16 @@ export function JobsTable({
                     showCheckbox={multiSelected.size > 0}
                   />
                 </div>
-              )
+              );
             })}
           </div>
         )}
       </div>
 
       <div className="bg-card flex items-center justify-between border-t px-3 py-1.5 font-sans text-[10px] tracking-wide uppercase text-muted-foreground">
-        <span>showing {jobs.length} of {total}</span>
+        <span>
+          showing {jobs.length} of {total}
+        </span>
         {multiSelected.size > 0 && (
           <span className="text-foreground">{multiSelected.size} selected</span>
         )}
@@ -214,31 +233,33 @@ export function JobsTable({
         queueName={queueName}
       />
     </div>
-  )
+  );
 }
 
 interface BulkActionBarProps {
-  selected: Set<string>
-  onClear: () => void
-  queueName: string
+  selected: Set<string>;
+  onClear: () => void;
+  queueName: string;
 }
 
 function BulkActionBar({ selected, onClear, queueName }: BulkActionBarProps) {
-  const { api, scopes } = useBullViewer()
-  const queryClient = useQueryClient()
-  const [busy, setBusy] = useState(false)
+  const { api, scopes } = useBullViewer();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
 
-  if (selected.size === 0) return null
+  if (selected.size === 0) return null;
 
   async function run(action: "retry" | "remove" | "promote") {
-    setBusy(true)
+    setBusy(true);
     try {
-      await api.bulkAction(queueName, { action, ids: [...selected] })
-      onClear()
-      queryClient.invalidateQueries({ queryKey: ["queues", queueName, "jobs"] })
-      queryClient.invalidateQueries({ queryKey: ["queues"] })
+      await api.bulkAction(queueName, { action, ids: [...selected] });
+      onClear();
+      void queryClient.invalidateQueries({
+        queryKey: ["queues", queueName, "jobs"],
+      });
+      void queryClient.invalidateQueries({ queryKey: ["queues"] });
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
@@ -286,5 +307,5 @@ function BulkActionBar({ selected, onClear, queueName }: BulkActionBarProps) {
         </button>
       </div>
     </div>
-  )
+  );
 }

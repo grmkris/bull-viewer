@@ -7,10 +7,18 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsgo --noEmit",
+    "lint": "ultracite check",
+    "fix": "ultracite fix",
+    "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
-    "@bull-viewer/core": "workspace:*"
+    "@bull-viewer/core": "workspace:*",
+    "@orpc/openapi": "^1.13.4",
+    "@orpc/server": "^1.13.4",
+    "@orpc/zod": "^1.13.4",
+    "bullmq": "^5.73.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

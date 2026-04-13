@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { Link } from "@tanstack/react-router"
+import { Link } from "@tanstack/react-router";
 import {
   GaugeIcon,
   ListIcon,
   SearchIcon,
   SettingsIcon,
   WorkflowIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 interface TabProps {
-  label: string
-  to?: string
-  icon: React.ReactNode
-  onClick?: () => void
-  primary?: boolean
+  label: string;
+  to?: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  primary?: boolean;
 }
 
 function Tab({ label, to, icon, onClick, primary }: TabProps) {
@@ -33,7 +33,7 @@ function Tab({ label, to, icon, onClick, primary }: TabProps) {
         {label}
       </span>
     </>
-  )
+  );
 
   if (to) {
     return (
@@ -44,7 +44,7 @@ function Tab({ label, to, icon, onClick, primary }: TabProps) {
       >
         {inner}
       </Link>
-    )
+    );
   }
   return (
     <button
@@ -54,7 +54,7 @@ function Tab({ label, to, icon, onClick, primary }: TabProps) {
     >
       {inner}
     </button>
-  )
+  );
 }
 
 export function MobileTabBar() {
@@ -71,12 +71,12 @@ export function MobileTabBar() {
         icon={<SearchIcon />}
         onClick={() => {
           window.dispatchEvent(
-            new KeyboardEvent("keydown", { key: "k", metaKey: true }),
-          )
+            new KeyboardEvent("keydown", { key: "k", metaKey: true })
+          );
         }}
       />
       <Tab to="/" label="Metrics" icon={<GaugeIcon />} />
       <Tab to="/" label="Me" icon={<SettingsIcon />} />
     </nav>
-  )
+  );
 }

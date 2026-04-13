@@ -1,5 +1,4 @@
-import { cn } from "@/lib/utils"
-import type { JobState } from "@bull-viewer/core"
+import { cn } from "@/lib/utils";
 
 const STATE_TO_VAR: Record<string, string> = {
   waiting: "var(--status-waiting)",
@@ -10,14 +9,17 @@ const STATE_TO_VAR: Record<string, string> = {
   paused: "var(--status-paused)",
   stalled: "var(--status-stalled)",
   "waiting-children": "var(--status-children)",
-}
+};
 
 export interface StatusDotProps {
-  state: JobState | "stalled" | string
-  size?: number
+  // Accepts JobState / "stalled" at the type level but also any custom token
+  // via fallback (kept as `string` because consumers pass computed health
+  // labels like "failed"/"delayed"/"paused" derived from counts).
+  state: string;
+  size?: number;
   /** Show a conic-gradient ring filled by `progress` (0..1) — used for running attempt progress. */
-  progress?: number
-  className?: string
+  progress?: number;
+  className?: string;
 }
 
 /**
@@ -34,8 +36,8 @@ export function StatusDot({
   progress,
   className,
 }: StatusDotProps) {
-  const color = STATE_TO_VAR[state] ?? "var(--status-waiting)"
-  const isActive = state === "active"
+  const color = STATE_TO_VAR[state] ?? "var(--status-waiting)";
+  const isActive = state === "active";
 
   if (!isActive) {
     return (
@@ -49,22 +51,25 @@ export function StatusDot({
           transition: "background-color 600ms ease-out",
         }}
       />
-    )
+    );
   }
 
   // Active: SVG ring + inner dot
-  const ringSize = size + 6
-  const center = ringSize / 2
-  const radius = center - 1.25
-  const stroke = 2
-  const circumference = 2 * Math.PI * radius
-  const determinate = progress != null && progress >= 0 && progress <= 1
-  const dashOffset = determinate ? circumference * (1 - progress!) : 0
+  const ringSize = size + 6;
+  const center = ringSize / 2;
+  const radius = center - 1.25;
+  const stroke = 2;
+  const circumference = 2 * Math.PI * radius;
+  const determinate = progress != null && progress >= 0 && progress <= 1;
+  const dashOffset = determinate ? circumference * (1 - progress!) : 0;
 
   return (
     <span
       aria-label={`status active${determinate ? ` ${Math.round((progress ?? 0) * 100)}%` : ""}`}
-      className={cn("relative inline-flex items-center justify-center", className)}
+      className={cn(
+        "relative inline-flex items-center justify-center",
+        className
+      )}
       style={{ width: ringSize, height: ringSize }}
     >
       <svg
@@ -91,7 +96,11 @@ export function StatusDot({
           stroke={color}
           strokeWidth={stroke}
           strokeLinecap="round"
-          strokeDasharray={determinate ? `${circumference}` : `${circumference * 0.25} ${circumference}`}
+          strokeDasharray={
+            determinate
+              ? `${circumference}`
+              : `${circumference * 0.25} ${circumference}`
+          }
           strokeDashoffset={dashOffset}
           transform={`rotate(-90 ${center} ${center})`}
         />
@@ -105,5 +114,5 @@ export function StatusDot({
         }}
       />
     </span>
-  )
+  );
 }

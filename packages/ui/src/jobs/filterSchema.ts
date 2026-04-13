@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod";
 
 export const JOB_STATES = [
   "waiting",
@@ -9,12 +9,12 @@ export const JOB_STATES = [
   "paused",
   "prioritized",
   "waiting-children",
-] as const
+] as const;
 
-export type JobStateFilter = (typeof JOB_STATES)[number]
+export type JobStateFilter = (typeof JOB_STATES)[number];
 
-export const TIME_RANGES = ["15m", "1h", "6h", "24h", "7d"] as const
-export type TimeRange = (typeof TIME_RANGES)[number]
+export const TIME_RANGES = ["15m", "1h", "6h", "24h", "7d"] as const;
+export type TimeRange = (typeof TIME_RANGES)[number];
 
 export const jobsSearchSchema = z.object({
   states: z
@@ -26,6 +26,6 @@ export const jobsSearchSchema = z.object({
   range: z.enum(TIME_RANGES).optional().default("1h"),
   cursor: z.coerce.number().int().min(0).optional().default(0),
   job: z.string().optional(), // open job in drawer
-})
+});
 
-export type JobsSearch = z.infer<typeof jobsSearchSchema>
+export type JobsSearch = z.infer<typeof jobsSearchSchema>;

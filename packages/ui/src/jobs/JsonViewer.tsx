@@ -1,40 +1,45 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import CodeMirror from "@uiw/react-codemirror"
-import { json } from "@codemirror/lang-json"
-import { search } from "@codemirror/search"
-import { foldGutter, foldKeymap, syntaxHighlighting, defaultHighlightStyle } from "@codemirror/language"
-import { keymap, EditorView } from "@codemirror/view"
-import { oneDark } from "@codemirror/theme-one-dark"
-import { CopyIcon, MaximizeIcon, MinimizeIcon } from "lucide-react"
-import { toast } from "sonner"
+import { json } from "@codemirror/lang-json";
+import {
+  foldGutter,
+  foldKeymap,
+  syntaxHighlighting,
+  defaultHighlightStyle,
+} from "@codemirror/language";
+import { search } from "@codemirror/search";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { keymap, EditorView } from "@codemirror/view";
+import CodeMirror from "@uiw/react-codemirror";
+import { CopyIcon, MaximizeIcon, MinimizeIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface JsonViewerProps {
-  value: unknown
-  ariaLabel?: string
+  value: unknown;
+  ariaLabel?: string;
 }
 
 function formatBytes(n: number): string {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`
-  return `${(n / (1024 * 1024)).toFixed(1)} MB`
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function JsonViewer({ value, ariaLabel }: JsonViewerProps) {
   const text = useMemo(() => {
     try {
-      return JSON.stringify(value, null, 2)
+      return JSON.stringify(value, null, 2);
     } catch {
-      return String(value)
+      return String(value);
     }
-  }, [value])
+  }, [value]);
 
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(false);
   const byteCount = useMemo(
     () => new TextEncoder().encode(text).length,
-    [text],
-  )
+    [text]
+  );
 
   const extensions = useMemo(
     () => [
@@ -58,15 +63,15 @@ export function JsonViewer({ value, ariaLabel }: JsonViewerProps) {
         },
       }),
     ],
-    [],
-  )
+    []
+  );
 
   const copyAll = () => {
     navigator.clipboard.writeText(text).then(
       () => toast.success("copied"),
-      () => toast.error("copy failed"),
-    )
-  }
+      () => toast.error("copy failed")
+    );
+  };
 
   return (
     <div className="bg-muted/20 rounded-sm border" aria-label={ariaLabel}>
@@ -111,5 +116,5 @@ export function JsonViewer({ value, ariaLabel }: JsonViewerProps) {
         />
       )}
     </div>
-  )
+  );
 }

@@ -1,44 +1,46 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { StatusDot } from "../shell/StatusDot.tsx"
-import type { FlowGraph, FlowNode } from "../api-client.ts"
+import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+
+import { cn } from "@/lib/utils";
+
+import type { FlowGraph, FlowNode } from "../api-client.ts";
+import { StatusDot } from "../shell/StatusDot.tsx";
 
 interface IndentedFlowTreeProps {
-  flow: FlowGraph
-  selectedId?: string
-  onSelect: (id: string) => void
+  flow: FlowGraph;
+  selectedId?: string;
+  onSelect: (id: string) => void;
 }
 
 interface TreeNode {
-  node: FlowNode
-  depth: number
-  children: TreeNode[]
+  node: FlowNode;
+  depth: number;
+  children: TreeNode[];
 }
 
 function buildTree(flow: FlowGraph): TreeNode | null {
-  const byId = new Map<string, FlowNode>()
-  for (const n of flow.nodes) byId.set(n.id, n)
-  const root = byId.get(flow.rootId)
-  if (!root) return null
+  const byId = new Map<string, FlowNode>();
+  for (const n of flow.nodes) byId.set(n.id, n);
+  const root = byId.get(flow.rootId);
+  if (!root) return null;
 
-  const childrenOf = new Map<string, FlowNode[]>()
+  const childrenOf = new Map<string, FlowNode[]>();
   for (const e of flow.edges) {
-    const list = childrenOf.get(e.from) ?? []
-    const child = byId.get(e.to)
-    if (child) list.push(child)
-    childrenOf.set(e.from, list)
+    const list = childrenOf.get(e.from) ?? [];
+    const child = byId.get(e.to);
+    if (child) list.push(child);
+    childrenOf.set(e.from, list);
   }
 
   const visit = (node: FlowNode, depth: number): TreeNode => ({
     node,
     depth,
     children: (childrenOf.get(node.id) ?? []).map((c) => visit(c, depth + 1)),
-  })
+  });
 
-  return visit(root, 0)
+  return visit(root, 0);
 }
 
 export function IndentedFlowTree({
@@ -46,30 +48,30 @@ export function IndentedFlowTree({
   selectedId,
   onSelect,
 }: IndentedFlowTreeProps) {
-  const tree = useMemo(() => buildTree(flow), [flow])
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const tree = useMemo(() => buildTree(flow), [flow]);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   if (!tree) {
     return (
       <div className="text-muted-foreground p-4 font-mono text-xs">
         flow not available
       </div>
-    )
+    );
   }
 
   const toggle = (id: string) => {
     setCollapsed((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const renderNode = (n: TreeNode): React.ReactNode => {
-    const isCollapsed = collapsed.has(n.node.id)
-    const hasChildren = n.children.length > 0
-    const isSelected = selectedId === n.node.id
+    const isCollapsed = collapsed.has(n.node.id);
+    const hasChildren = n.children.length > 0;
+    const isSelected = selectedId === n.node.id;
 
     return (
       <div key={`${n.node.queue}:${n.node.id}`}>
@@ -78,11 +80,13 @@ export function IndentedFlowTree({
           onClick={() => onSelect(n.node.id)}
           className={cn(
             "group hover:bg-muted/40 relative flex w-full items-center gap-2 border-l-[3px] border-transparent px-2 py-2 text-left transition-colors",
-            isSelected && "bg-muted/60 border-l-[3px]",
+            isSelected && "bg-muted/60 border-l-[3px]"
           )}
           style={{
             paddingLeft: `${8 + n.depth * 20}px`,
-            borderLeftColor: isSelected ? `var(--status-${stateColor(n.node.state)})` : undefined,
+            borderLeftColor: isSelected
+              ? `var(--status-${stateColor(n.node.state)})`
+              : undefined,
           }}
         >
           {hasChildren && (
@@ -90,8 +94,8 @@ export function IndentedFlowTree({
               role="button"
               tabIndex={-1}
               onClick={(e) => {
-                e.stopPropagation()
-                toggle(n.node.id)
+                e.stopPropagation();
+                toggle(n.node.id);
               }}
               className="text-muted-foreground hover:text-foreground -ml-4 mr-0.5 inline-flex"
             >
@@ -132,14 +136,12 @@ export function IndentedFlowTree({
           <div>{n.children.map((c) => renderNode(c))}</div>
         )}
       </div>
-    )
-  }
+    );
+  };
 
   return (
-    <div className="bg-card divide-y rounded-md border">
-      {renderNode(tree)}
-    </div>
-  )
+    <div className="bg-card divide-y rounded-md border">{renderNode(tree)}</div>
+  );
 }
 
 function stateColor(state: string): string {
@@ -152,8 +154,8 @@ function stateColor(state: string): string {
     state === "paused" ||
     state === "stalled"
   ) {
-    return state
+    return state;
   }
-  if (state === "waiting-children") return "children"
-  return "waiting"
+  if (state === "waiting-children") return "children";
+  return "waiting";
 }

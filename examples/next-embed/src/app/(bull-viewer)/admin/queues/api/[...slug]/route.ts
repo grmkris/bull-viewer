@@ -1,15 +1,16 @@
-import { createQueuesRouteHandlers } from "@bull-viewer/next"
-import { redis } from "@/lib/redis"
-import { auth } from "@/lib/auth"
+import { createQueuesRouteHandlers } from "@bull-viewer/next";
+
+import { auth } from "@/lib/auth";
+import { redis } from "@/lib/redis";
 
 export const { GET, POST, PATCH, DELETE } = createQueuesRouteHandlers({
   connection: redis,
   queues: ["emails", "reports"],
   basePath: "/admin/queues/api",
   authorize: async () => {
-    const session = await auth()
+    const session = await auth();
     if (!session?.user.isAdmin) {
-      return { ok: false, status: 401, message: "unauthorized" }
+      return { ok: false, status: 401, message: "unauthorized" };
     }
     return {
       ok: true,
@@ -19,6 +20,6 @@ export const { GET, POST, PATCH, DELETE } = createQueuesRouteHandlers({
         email: session.user.email,
       },
       scopes: ["read"],
-    }
+    };
   },
-})
+});

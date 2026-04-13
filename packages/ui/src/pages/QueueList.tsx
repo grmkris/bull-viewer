@@ -1,56 +1,55 @@
-"use client"
+"use client";
 
-import { useQuery, useQueries } from "@tanstack/react-query"
-import { Link } from "@tanstack/react-router"
-import type { QueueSnapshot } from "@bull-viewer/core"
-import { useBullViewer } from "../context.tsx"
-import { Sparkline } from "../charts/Sparkline.tsx"
-import { StatusDot } from "../shell/StatusDot.tsx"
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
+import type { QueueSnapshot } from "@bull-viewer/core";
+import { useQuery, useQueries } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 
-interface MetricBucket {
-  ts: number
-  completed: number
-  failed: number
-}
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
-function healthState(q: QueueSnapshot): "completed" | "delayed" | "failed" | "paused" {
-  if (q.isPaused) return "paused"
-  if (q.counts.failed > 0) return "failed"
-  if (q.counts.delayed > 0 || q.counts.waiting > 100) return "delayed"
-  return "completed"
+import { Sparkline } from "../charts/Sparkline.tsx";
+import { useBullViewer } from "../context.tsx";
+import { StatusDot } from "../shell/StatusDot.tsx";
+
+function healthState(
+  q: QueueSnapshot
+): "completed" | "delayed" | "failed" | "paused" {
+  if (q.isPaused) return "paused";
+  if (q.counts.failed > 0) return "failed";
+  if (q.counts.delayed > 0 || q.counts.waiting > 100) return "delayed";
+  return "completed";
 }
 
 export function QueueList() {
-  const { api } = useBullViewer()
+  const { api } = useBullViewer();
 
   const { data, isLoading } = useQuery({
     queryKey: ["queues"],
     queryFn: () => api.listQueues(),
     refetchInterval: 5_000,
-  })
+  });
 
-  const queues = data?.queues ?? []
+  const queues = data?.queues ?? [];
 
   // Fetch sparkline data for all queues in parallel (last 1h throughput)
   const sparkQueries = useQueries({
     queries: queues.map((q) => ({
       queryKey: ["queues", q.name, "metrics", { range: "1h" }],
-      queryFn: async () => {
-        const res = await fetch(
-          `${api.apiBase}/queues/${encodeURIComponent(q.name)}/metrics?range=1h`,
-        )
-        if (!res.ok) return { buckets: [] }
-        return res.json() as Promise<{ buckets: MetricBucket[] }>
-      },
+      queryFn: () => api.getMetrics(q.name, "1h"),
       refetchInterval: 30_000,
     })),
-  })
+  });
 
   if (isLoading && queues.length === 0) {
     return (
-      <div className="font-mono text-sm text-muted-foreground">loading queues…</div>
-    )
+      <div className="font-mono text-sm text-muted-foreground">
+        loading queues…
+      </div>
+    );
   }
 
   if (queues.length === 0) {
@@ -67,7 +66,7 @@ export function QueueList() {
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
-    )
+    );
   }
 
   return (
@@ -81,9 +80,9 @@ export function QueueList() {
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
         {queues.map((q, i) => {
-          const sparkData = sparkQueries[i]?.data?.buckets ?? []
-          const points = sparkData.map((b) => b.completed + b.failed)
-          const health = healthState(q)
+          const sparkData = sparkQueries[i]?.data?.buckets ?? [];
+          const points = sparkData.map((b) => b.completed + b.failed);
+          const health = healthState(q);
           return (
             <Link
               key={q.name}
@@ -107,7 +106,11 @@ export function QueueList() {
               <dl className="text-muted-foreground mt-3 grid grid-cols-3 gap-x-3 gap-y-1 font-mono text-[11px] tnum">
                 <Stat label="wait" value={q.counts.waiting} />
                 <Stat label="active" value={q.counts.active} />
-                <Stat label="failed" value={q.counts.failed} accent={q.counts.failed > 0 ? "failed" : undefined} />
+                <Stat
+                  label="failed"
+                  value={q.counts.failed}
+                  accent={q.counts.failed > 0 ? "failed" : undefined}
+                />
                 <Stat label="delayed" value={q.counts.delayed} />
                 <Stat label="done" value={q.counts.completed} />
                 <Stat label="paused" value={q.counts.paused} />
@@ -116,14 +119,19 @@ export function QueueList() {
                 <span className="font-sans text-[9px] uppercase tracking-wide text-muted-foreground">
                   last 1h
                 </span>
-                <Sparkline points={points} width={120} height={20} stroke="var(--signal)" />
+                <Sparkline
+                  points={points}
+                  width={120}
+                  height={20}
+                  stroke="var(--signal)"
+                />
               </div>
             </Link>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
 function Stat({
@@ -131,9 +139,9 @@ function Stat({
   value,
   accent,
 }: {
-  label: string
-  value: number
-  accent?: "failed" | "delayed"
+  label: string;
+  value: number;
+  accent?: "failed" | "delayed";
 }) {
   return (
     <div className="flex items-baseline justify-between">
@@ -150,5 +158,5 @@ function Stat({
         {value}
       </dd>
     </div>
-  )
+  );
 }

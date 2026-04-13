@@ -1,21 +1,21 @@
-import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
-import tailwindcss from "@tailwindcss/vite"
-import tsconfigPaths from "vite-tsconfig-paths"
-import type { Plugin } from "vite"
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import type { Plugin } from "vite";
+import tsconfigPaths from "vite-tsconfig-paths";
 
-const mode = process.env.VITE_BUILD_MODE ?? "standalone"
+const mode = process.env.VITE_BUILD_MODE ?? "standalone";
 
 const injectUseClient = (): Plugin => ({
   name: "inject-use-client",
   generateBundle(_options, bundle) {
     for (const file of Object.values(bundle)) {
       if (file.type === "chunk") {
-        file.code = '"use client";\n' + file.code
+        file.code = '"use client";\n' + file.code;
       }
     }
   },
-})
+});
 
 export default defineConfig({
   plugins: [
@@ -45,4 +45,4 @@ export default defineConfig({
       : {
           outDir: "dist/standalone",
         },
-})
+});

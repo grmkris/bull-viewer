@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
 export interface ChartTheme {
-  background: string
-  foreground: string
-  mutedForeground: string
-  gridline: string
-  threshold: string
-  completed: string
-  failed: string
-  p50: string
-  p95: string
-  p99: string
-  active: string
-  delayed: string
+  background: string;
+  foreground: string;
+  mutedForeground: string;
+  gridline: string;
+  threshold: string;
+  completed: string;
+  failed: string;
+  p50: string;
+  p95: string;
+  p99: string;
+  active: string;
+  delayed: string;
 }
 
 const FALLBACK: ChartTheme = {
@@ -28,16 +28,16 @@ const FALLBACK: ChartTheme = {
   p99: "#3b82f6",
   active: "#3b82f6",
   delayed: "#f59e0b",
-}
+};
 
 /** Reads CSS variables from the bv-root element. Falls back to a dark palette. */
 export function readChartTheme(): ChartTheme {
-  if (typeof document === "undefined") return FALLBACK
-  const root = document.querySelector(".bv-root") as HTMLElement | null
-  if (!root) return FALLBACK
-  const cs = getComputedStyle(root)
+  if (typeof document === "undefined") return FALLBACK;
+  const root = document.querySelector(".bv-root") as HTMLElement | null;
+  if (!root) return FALLBACK;
+  const cs = getComputedStyle(root);
   const get = (name: string, fallback: string) =>
-    cs.getPropertyValue(name).trim() || fallback
+    cs.getPropertyValue(name).trim() || fallback;
 
   return {
     background: get("--background", FALLBACK.background),
@@ -52,5 +52,5 @@ export function readChartTheme(): ChartTheme {
     p99: get("--chart-p99", FALLBACK.p99),
     active: get("--status-active", FALLBACK.active),
     delayed: get("--status-delayed", FALLBACK.delayed),
-  }
+  };
 }

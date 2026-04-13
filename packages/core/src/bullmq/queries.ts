@@ -1,11 +1,12 @@
-import type { Queue, Job } from "bullmq"
+import type { Queue, Job } from "bullmq";
+
 import type {
   JobCounts,
   JobListPage,
   JobSnapshot,
   JobState,
   QueueSnapshot,
-} from "../types.ts"
+} from "../types.ts";
 
 const STATES_FOR_COUNTS = [
   "waiting",
@@ -16,52 +17,54 @@ const STATES_FOR_COUNTS = [
   "paused",
   "prioritized",
   "waiting-children",
-] as const
+] as const;
 
 export async function getQueueSnapshot(queue: Queue): Promise<QueueSnapshot> {
   const [counts, isPaused] = await Promise.all([
     queue.getJobCounts(...STATES_FOR_COUNTS),
     queue.isPaused(),
-  ])
+  ]);
   return {
     name: queue.name,
     counts: normalizeCounts(counts),
     isPaused,
-  }
+  };
 }
 
 export interface ListJobsOptions {
-  states: JobState[]
-  start: number
-  end: number
-  nameFilter?: string
+  states: JobState[];
+  start: number;
+  end: number;
+  nameFilter?: string;
 }
 
 export async function listJobs(
   queue: Queue,
-  options: ListJobsOptions,
+  options: ListJobsOptions
 ): Promise<JobListPage> {
-  const states = options.states.length ? options.states : (["waiting"] as JobState[])
+  const states = options.states.length
+    ? options.states
+    : (["waiting"] as JobState[]);
 
   // Fetch a slightly wider window when name-filtering, so we can post-filter
   // and still return a useful page count. Cap the over-fetch at 4x.
-  const window = options.end - options.start + 1
+  const window = options.end - options.start + 1;
   const fetchEnd = options.nameFilter
     ? options.start + window * 4 - 1
-    : options.end
+    : options.end;
 
   const [rawJobs, total] = await Promise.all([
     queue.getJobs(states, options.start, fetchEnd, true),
     queue.getJobCountByTypes(...states),
-  ])
+  ]);
 
-  const snapshots: JobSnapshot[] = []
+  const snapshots: JobSnapshot[] = [];
   for (const job of rawJobs) {
-    if (!job) continue
-    if (options.nameFilter && !job.name.includes(options.nameFilter)) continue
-    if (snapshots.length >= window) break
-    const state = await safeState(job, states[0]!)
-    snapshots.push(await snapshot(job, state))
+    if (!job) continue;
+    if (options.nameFilter && !job.name.includes(options.nameFilter)) continue;
+    if (snapshots.length >= window) break;
+    const state = await safeState(job, states[0]!);
+    snapshots.push(await snapshot(job, state));
   }
 
   return {
@@ -70,33 +73,33 @@ export async function listJobs(
     state: states[0]!,
     start: options.start,
     end: options.start + snapshots.length - 1,
-  }
+  };
 }
 
 export async function getJob(
   queue: Queue,
-  id: string,
+  id: string
 ): Promise<JobSnapshot | null> {
-  const job = await queue.getJob(id)
-  if (!job) return null
-  const state = (await job.getState()) as JobState | "unknown"
-  return snapshot(job, state)
+  const job = await queue.getJob(id);
+  if (!job) return null;
+  const state = (await job.getState()) as JobState | "unknown";
+  return snapshot(job, state);
 }
 
 async function safeState(
   job: Job,
-  fallback: JobState,
+  fallback: JobState
 ): Promise<JobState | "unknown"> {
   try {
-    return (await job.getState()) as JobState | "unknown"
+    return (await job.getState()) as JobState | "unknown";
   } catch {
-    return fallback
+    return fallback;
   }
 }
 
 async function snapshot(
   job: Job,
-  state: JobState | "unknown",
+  state: JobState | "unknown"
 ): Promise<JobSnapshot> {
   return {
     id: String(job.id),
@@ -112,7 +115,7 @@ async function snapshot(
     processedOn: job.processedOn ?? null,
     finishedOn: job.finishedOn ?? null,
     state,
-  }
+  };
 }
 
 function normalizeCounts(raw: Record<string, number>): JobCounts {
@@ -125,5 +128,5 @@ function normalizeCounts(raw: Record<string, number>): JobCounts {
     paused: raw.paused ?? 0,
     prioritized: raw.prioritized ?? 0,
     "waiting-children": raw["waiting-children"] ?? 0,
-  }
+  };
 }

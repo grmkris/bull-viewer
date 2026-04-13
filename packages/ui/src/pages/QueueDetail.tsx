@@ -1,45 +1,47 @@
-"use client"
+"use client";
 
-import { lazy, Suspense } from "react"
-import { useNavigate, useParams, useSearch } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
-import { cn } from "@/lib/utils"
-import { useBullViewer } from "../context.tsx"
-import { StatusDot } from "../shell/StatusDot.tsx"
-import { QueueJobsView } from "./QueueJobsView.tsx"
+import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
+
+import { cn } from "@/lib/utils";
+
+import { useBullViewer } from "../context.tsx";
+import { StatusDot } from "../shell/StatusDot.tsx";
+import { QueueJobsView } from "./QueueJobsView.tsx";
 
 // Lazy-load the metrics/charts page so uPlot stays out of the base bundle
 const QueueOverview = lazy(() =>
-  import("./QueueOverview.tsx").then((m) => ({ default: m.QueueOverview })),
-)
+  import("./QueueOverview.tsx").then((m) => ({ default: m.QueueOverview }))
+);
 
 const TABS = [
   { value: "overview", label: "overview" },
   { value: "jobs", label: "jobs" },
-] as const
-type Tab = (typeof TABS)[number]["value"]
+] as const;
+type Tab = (typeof TABS)[number]["value"];
 
 export function QueueDetail() {
-  const { name } = useParams({ from: "/queues/$name" })
-  const search = useSearch({ from: "/queues/$name" })
-  const navigate = useNavigate()
-  const { api } = useBullViewer()
-  const tab = (search.tab as Tab | undefined) ?? "overview"
+  const { name } = useParams({ from: "/queues/$name" });
+  const search = useSearch({ from: "/queues/$name" });
+  const navigate = useNavigate();
+  const { api } = useBullViewer();
+  const tab = (search.tab as Tab | undefined) ?? "overview";
 
   const { data: queueData } = useQuery({
     queryKey: ["queues", name],
     queryFn: () => api.getQueue(name),
     refetchInterval: 5_000,
-  })
-  const counts = queueData?.queue?.counts
+  });
+  const counts = queueData?.queue?.counts;
 
   const setTab = (next: Tab) => {
-    navigate({
+    void navigate({
       to: "/queues/$name",
       params: { name },
       search: (prev) => ({ ...prev, tab: next }),
-    })
-  }
+    });
+  };
 
   return (
     <div className="-m-4 flex flex-col">
@@ -72,7 +74,7 @@ export function QueueDetail() {
               "relative font-sans text-[11px] uppercase tracking-wide px-2 py-2 transition-colors",
               tab === t.value
                 ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground",
+                : "text-muted-foreground hover:text-foreground"
             )}
           >
             {t.label}
@@ -100,7 +102,7 @@ export function QueueDetail() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function CountChip({
@@ -108,9 +110,9 @@ function CountChip({
   value,
   state,
 }: {
-  label: string
-  value: number
-  state: string
+  label: string;
+  value: number;
+  state: string;
 }) {
   return (
     <div className="flex items-center gap-1.5">
@@ -120,5 +122,5 @@ function CountChip({
       </span>
       <span className="text-foreground">{value}</span>
     </div>
-  )
+  );
 }

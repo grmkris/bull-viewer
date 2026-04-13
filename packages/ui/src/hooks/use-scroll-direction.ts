@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 
 /**
  * Returns "up" or "down" based on the most recent scroll movement, with a
@@ -8,29 +8,29 @@ import { useEffect, useState } from "react"
  * on scroll-down and restore on scroll-up (GitHub mobile pattern).
  */
 export function useScrollDirection(deadZone = 8): "up" | "down" {
-  const [direction, setDirection] = useState<"up" | "down">("up")
+  const [direction, setDirection] = useState<"up" | "down">("up");
 
   useEffect(() => {
-    if (typeof window === "undefined") return
-    let last = window.scrollY
-    let ticking = false
+    if (typeof window === "undefined") return;
+    let last = window.scrollY;
+    let ticking = false;
 
     const onScroll = () => {
-      if (ticking) return
-      ticking = true
+      if (ticking) return;
+      ticking = true;
       requestAnimationFrame(() => {
-        const y = window.scrollY
+        const y = window.scrollY;
         if (Math.abs(y - last) >= deadZone) {
-          setDirection(y > last ? "down" : "up")
-          last = y
+          setDirection(y > last ? "down" : "up");
+          last = y;
         }
-        ticking = false
-      })
-    }
+        ticking = false;
+      });
+    };
 
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
-  }, [deadZone])
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [deadZone]);
 
-  return direction
+  return direction;
 }

@@ -1,23 +1,25 @@
-"use client"
+"use client";
 
-import { RadioIcon, SearchIcon, XIcon } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { RadioIcon, SearchIcon, XIcon } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group"
-import { cn } from "@/lib/utils"
-import type { JobStateFilter } from "./filterSchema.ts"
-import { JOB_STATES } from "./filterSchema.ts"
+} from "@/components/ui/input-group";
+import { cn } from "@/lib/utils";
+
+import type { JobStateFilter } from "./filterSchema.ts";
+import { JOB_STATES } from "./filterSchema.ts";
 
 interface FilterChipBarProps {
-  states: JobStateFilter[]
-  nameFilter: string
-  onStatesChange: (states: JobStateFilter[]) => void
-  onNameChange: (name: string) => void
-  liveTail: boolean
-  onToggleLive: () => void
+  states: JobStateFilter[];
+  nameFilter: string;
+  onStatesChange: (states: JobStateFilter[]) => void;
+  onNameChange: (name: string) => void;
+  liveTail: boolean;
+  onToggleLive: () => void;
 }
 
 const STATE_COLORS: Record<string, string> = {
@@ -29,7 +31,7 @@ const STATE_COLORS: Record<string, string> = {
   paused: "bg-status-paused",
   prioritized: "bg-status-active",
   "waiting-children": "bg-status-children",
-}
+};
 
 export function FilterChipBar({
   states,
@@ -41,17 +43,17 @@ export function FilterChipBar({
 }: FilterChipBarProps) {
   const toggleState = (s: JobStateFilter) => {
     if (states.includes(s)) {
-      onStatesChange(states.filter((x) => x !== s))
+      onStatesChange(states.filter((x) => x !== s));
     } else {
-      onStatesChange([...states, s])
+      onStatesChange([...states, s]);
     }
-  }
+  };
 
   return (
     <div className="bg-card flex flex-wrap items-center gap-2 border-b px-3 py-2">
       <div className="flex flex-wrap items-center gap-1">
         {JOB_STATES.map((s) => {
-          const active = states.includes(s)
+          const active = states.includes(s);
           return (
             <button
               key={s}
@@ -61,13 +63,13 @@ export function FilterChipBar({
                 "group flex items-center gap-1.5 rounded-sm border px-2 py-1 font-sans text-[11px] transition-colors",
                 active
                   ? "bg-foreground/5 border-foreground/30 text-foreground"
-                  : "border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+                  : "border-transparent text-muted-foreground hover:bg-muted/40 hover:text-foreground"
               )}
             >
               <span
                 className={cn(
                   "inline-block size-1.5 rounded-full",
-                  STATE_COLORS[s] ?? "bg-muted-foreground",
+                  STATE_COLORS[s] ?? "bg-muted-foreground"
                 )}
               />
               {s}
@@ -75,7 +77,7 @@ export function FilterChipBar({
                 <XIcon className="size-2.5 opacity-0 transition-opacity group-hover:opacity-100" />
               )}
             </button>
-          )
+          );
         })}
       </div>
 
@@ -100,24 +102,24 @@ export function FilterChipBar({
           "flex h-7 items-center gap-1.5 rounded-sm border px-2 font-sans text-[11px] tracking-wide uppercase transition-colors",
           liveTail
             ? "border-signal/40 bg-signal/10 text-signal"
-            : "text-muted-foreground hover:text-foreground border-transparent",
+            : "text-muted-foreground hover:text-foreground border-transparent"
         )}
       >
         <RadioIcon className={cn("size-3", liveTail && "bv-pulse")} />
         live
       </button>
     </div>
-  )
+  );
 }
 
 export function ActiveFiltersDisplay({
   states,
   nameFilter,
 }: {
-  states: JobStateFilter[]
-  nameFilter?: string
+  states: JobStateFilter[];
+  nameFilter?: string;
 }) {
-  if (states.length === 0 && !nameFilter) return null
+  if (states.length === 0 && !nameFilter) return null;
   return (
     <div className="flex flex-wrap items-center gap-1 px-3 py-1.5 font-mono text-[11px]">
       {states.map((s) => (
@@ -131,5 +133,5 @@ export function ActiveFiltersDisplay({
         </Badge>
       )}
     </div>
-  )
+  );
 }

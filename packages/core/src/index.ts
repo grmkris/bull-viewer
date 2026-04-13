@@ -7,5 +7,5 @@ export type {
   Scope,
   Viewer,
   ActionResult,
-} from "./types.ts"
-export { ALL_SCOPES } from "./types.ts"
+} from "./types.ts";
+export { ALL_SCOPES, READ_ONLY_SCOPES } from "./types.ts";

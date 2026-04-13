@@ -1,0 +1,32 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": false,
+  "jsxSingleQuote": false,
+  "trailingComma": "es5",
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "ignorePatterns": [
+    ".agents",
+    ".claude",
+    ".next",
+    "dist",
+    "node_modules",
+    "routeTree.gen.ts",
+    "packages/ui/dist",
+    "packages/ui/src/components/ui",
+    "examples/next-embed/.next",
+    "examples/next-embed/next-env.d.ts"
+  ],
+  "experimentalSortPackageJson": true,
+  "experimentalSortImports": {
+    "ignoreCase": true,
+    "newlinesBetween": true,
+    "order": "asc"
+  }
+}

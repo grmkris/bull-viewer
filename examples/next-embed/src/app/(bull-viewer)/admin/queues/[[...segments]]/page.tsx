@@ -1,10 +1,11 @@
-import { QueuesPage } from "@bull-viewer/next"
-import { auth } from "@/lib/auth"
+import { QueuesPage } from "@bull-viewer/next";
+
+import { auth } from "@/lib/auth";
 
 export default async function Page() {
-  const session = await auth()
+  const session = await auth();
   if (!session?.user.isAdmin) {
-    return <div style={{ padding: "2rem" }}>Forbidden</div>
+    return <div style={{ padding: "2rem" }}>Forbidden</div>;
   }
   return (
     <QueuesPage
@@ -17,5 +18,5 @@ export default async function Page() {
       }}
       scopes={["read"]}
     />
-  )
+  );
 }

@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
 import {
   Background,
   BackgroundVariant,
@@ -12,37 +11,40 @@ import {
   type Edge,
   type Node,
   type NodeProps,
-} from "@xyflow/react"
-import dagre from "dagre"
-import "@xyflow/react/dist/style.css"
-import type { FlowGraph as Flow, FlowNode } from "../api-client.ts"
-import { StatusDot } from "../shell/StatusDot.tsx"
-import { cn } from "@/lib/utils"
+} from "@xyflow/react";
+import dagre from "dagre";
+import { useMemo } from "react";
+
+import "@xyflow/react/dist/style.css";
+import { cn } from "@/lib/utils";
+
+import type { FlowGraph as Flow, FlowNode } from "../api-client.ts";
+import { StatusDot } from "../shell/StatusDot.tsx";
 
 interface FlowGraphProps {
-  flow: Flow
-  selectedId?: string
-  onSelect: (id: string) => void
+  flow: Flow;
+  selectedId?: string;
+  onSelect: (id: string) => void;
 }
 
-const NODE_WIDTH = 220
-const NODE_HEIGHT = 64
+const NODE_WIDTH = 220;
+const NODE_HEIGHT = 64;
 
 interface JobNodeData extends Record<string, unknown> {
-  flowNode: FlowNode
-  selected: boolean
-  onClick: () => void
+  flowNode: FlowNode;
+  selected: boolean;
+  onClick: () => void;
 }
 
 function JobNode({ data }: NodeProps) {
-  const { flowNode, selected, onClick } = data as JobNodeData
+  const { flowNode, selected, onClick } = data as JobNodeData;
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
         "bg-card flex h-full w-full items-stretch overflow-hidden rounded-md border text-left transition-shadow",
-        selected ? "ring-signal/60 ring-2" : "hover:border-foreground/30",
+        selected ? "ring-signal/60 ring-2" : "hover:border-foreground/30"
       )}
       style={{ width: NODE_WIDTH, height: NODE_HEIGHT }}
     >
@@ -53,7 +55,9 @@ function JobNode({ data }: NodeProps) {
       />
       <div
         className="w-1 shrink-0"
-        style={{ backgroundColor: `var(--status-${stateColorOf(flowNode.state)})` }}
+        style={{
+          backgroundColor: `var(--status-${stateColorOf(flowNode.state)})`,
+        }}
       />
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5 px-3">
         <div className="flex items-center justify-between gap-2">
@@ -93,7 +97,7 @@ function JobNode({ data }: NodeProps) {
         className="!h-1 !w-1 !border-0 !bg-transparent"
       />
     </button>
-  )
+  );
 }
 
 function stateColorOf(state: string): string {
@@ -106,36 +110,36 @@ function stateColorOf(state: string): string {
     state === "paused" ||
     state === "stalled"
   )
-    return state
-  if (state === "waiting-children") return "children"
-  return "waiting"
+    return state;
+  if (state === "waiting-children") return "children";
+  return "waiting";
 }
 
-const nodeTypes = { job: JobNode }
+const nodeTypes = { job: JobNode };
 
 function layoutWithDagre(
   nodes: FlowNode[],
-  edges: { from: string; to: string }[],
+  edges: { from: string; to: string }[]
 ): { nodes: Node[]; edges: Edge[] } {
-  const g = new dagre.graphlib.Graph()
-  g.setDefaultEdgeLabel(() => ({}))
+  const g = new dagre.graphlib.Graph();
+  g.setDefaultEdgeLabel(() => ({}));
   g.setGraph({
     rankdir: "TB",
     ranker: "tight-tree",
     nodesep: 32,
     ranksep: 48,
-  })
+  });
 
   for (const n of nodes) {
-    g.setNode(n.id, { width: NODE_WIDTH, height: NODE_HEIGHT })
+    g.setNode(n.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
   }
   for (const e of edges) {
-    g.setEdge(e.from, e.to)
+    g.setEdge(e.from, e.to);
   }
-  dagre.layout(g)
+  dagre.layout(g);
 
   const out: Node[] = nodes.map((n) => {
-    const pos = g.node(n.id)
+    const pos = g.node(n.id);
     return {
       id: n.id,
       type: "job",
@@ -150,8 +154,8 @@ function layoutWithDagre(
       } satisfies JobNodeData,
       width: NODE_WIDTH,
       height: NODE_HEIGHT,
-    }
-  })
+    };
+  });
 
   const outEdges: Edge[] = edges.map((e) => ({
     id: `${e.from}->${e.to}`,
@@ -159,16 +163,16 @@ function layoutWithDagre(
     target: e.to,
     type: "smoothstep",
     style: { stroke: "var(--muted-foreground)", strokeWidth: 1.25 },
-  }))
+  }));
 
-  return { nodes: out, edges: outEdges }
+  return { nodes: out, edges: outEdges };
 }
 
 export function FlowGraph({ flow, selectedId, onSelect }: FlowGraphProps) {
   const layout = useMemo(
     () => layoutWithDagre(flow.nodes, flow.edges),
-    [flow.nodes, flow.edges],
-  )
+    [flow.nodes, flow.edges]
+  );
 
   // Inject selection + click handler into node data
   const decoratedNodes = useMemo<Node[]>(
@@ -181,8 +185,8 @@ export function FlowGraph({ flow, selectedId, onSelect }: FlowGraphProps) {
           onClick: () => onSelect(n.id),
         },
       })),
-    [layout.nodes, selectedId, onSelect],
-  )
+    [layout.nodes, selectedId, onSelect]
+  );
 
   return (
     <div className="bg-card relative h-[60vh] min-h-[360px] overflow-hidden rounded-md border">
@@ -203,11 +207,11 @@ export function FlowGraph({ flow, selectedId, onSelect }: FlowGraphProps) {
           zoomable
           maskColor="rgba(0,0,0,0.4)"
           nodeColor={(node) => {
-            const data = node.data as JobNodeData
-            return `var(--status-${stateColorOf(data.flowNode.state)})`
+            const data = node.data as JobNodeData;
+            return `var(--status-${stateColorOf(data.flowNode.state)})`;
           }}
         />
       </ReactFlow>
     </div>
-  )
+  );
 }

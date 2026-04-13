@@ -1,10 +1,10 @@
-import { FlowProducer } from "bullmq"
-import IORedis from "ioredis"
+import { FlowProducer } from "bullmq";
+import IORedis from "ioredis";
 
-const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379"
-const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null })
+const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379";
+const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null });
 
-const flow = new FlowProducer({ connection })
+const flow = new FlowProducer({ connection });
 
 const tree = await flow.add({
   name: "nightly-report",
@@ -31,10 +31,10 @@ const tree = await flow.add({
       data: { to: "ceo@example.com" },
     },
   ],
-})
+});
 
-console.log(`flow seeded — root id ${tree.job.id}`)
+console.log(`flow seeded — root id ${tree.job.id}`);
 
-await flow.close()
-connection.disconnect()
-process.exit(0)
+await flow.close();
+connection.disconnect();
+process.exit(0);

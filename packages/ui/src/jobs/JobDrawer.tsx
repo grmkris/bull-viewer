@@ -1,91 +1,89 @@
-"use client"
+"use client";
 
-import { lazy, Suspense, useEffect } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react"
-import { toast } from "sonner"
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { lazy, Suspense, useEffect } from "react";
+import { toast } from "sonner";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
   DrawerDescription,
   DrawerTitle,
-} from "@/components/ui/drawer"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useBullViewer } from "../context.tsx"
-import { StatusDot } from "../shell/StatusDot.tsx"
-import { Link } from "@tanstack/react-router"
-import { StackTraceViewer } from "./StackTraceViewer.tsx"
-import { FlowView } from "./FlowView.tsx"
+} from "@/components/ui/drawer";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+import { useBullViewer } from "../context.tsx";
+import { StatusDot } from "../shell/StatusDot.tsx";
+import { FlowView } from "./FlowView.tsx";
+import { StackTraceViewer } from "./StackTraceViewer.tsx";
 
 // Lazy-load CodeMirror so the ~150 KB of editor code only ships when the
 // drawer actually opens (and even then, only on the first job's data tab).
 const JsonViewer = lazy(() =>
-  import("./JsonViewer.tsx").then((m) => ({ default: m.JsonViewer })),
-)
+  import("./JsonViewer.tsx").then((m) => ({ default: m.JsonViewer }))
+);
 
 interface JobDrawerProps {
-  queueName: string
-  jobId: string | undefined
-  onClose: () => void
+  queueName: string;
+  jobId: string | undefined;
+  onClose: () => void;
 }
 
 export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
-  const { api, scopes } = useBullViewer()
-  const queryClient = useQueryClient()
+  const { api, scopes } = useBullViewer();
+  const queryClient = useQueryClient();
 
-  const open = jobId !== undefined
+  const open = jobId !== undefined;
 
   const { data, error } = useQuery({
     queryKey: ["queues", queueName, "jobs", jobId],
     queryFn: () => api.getJob(queueName, jobId!),
     enabled: open,
     refetchInterval: 3000,
-  })
+  });
 
-  const job = data?.job
+  const job = data?.job;
 
   // Keyboard: esc closes
   useEffect(() => {
-    if (!open) return
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [open, onClose])
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
 
   async function runAction(action: "retry" | "remove" | "promote") {
-    if (!jobId) return
+    if (!jobId) return;
     try {
-      await api.jobAction(queueName, jobId, action)
-      toast.success(`${action} ${jobId} ok`)
-      if (action === "remove") onClose()
-      queryClient.invalidateQueries({ queryKey: ["queues", queueName, "jobs"] })
-      queryClient.invalidateQueries({ queryKey: ["queues"] })
+      await api.jobAction(queueName, jobId, action);
+      toast.success(`${action} ${jobId} ok`);
+      if (action === "remove") onClose();
+      void queryClient.invalidateQueries({
+        queryKey: ["queues", queueName, "jobs"],
+      });
+      void queryClient.invalidateQueries({ queryKey: ["queues"] });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err))
+      toast.error(err instanceof Error ? err.message : String(err));
     }
   }
 
   const copyId = () => {
-    if (!jobId) return
+    if (!jobId) return;
     navigator.clipboard.writeText(jobId).then(
       () => toast.success("id copied"),
-      () => toast.error("copy failed"),
-    )
-  }
+      () => toast.error("copy failed")
+    );
+  };
 
   return (
-    <Drawer
-      open={open}
-      onOpenChange={(o) => !o && onClose()}
-      direction="right"
-    >
-      <DrawerContent
-        className="bg-background data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:top-0 data-[vaul-drawer-direction=right]:bottom-0 data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-[560px] data-[vaul-drawer-direction=right]:rounded-none data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=right]:flex"
-      >
+    <Drawer open={open} onOpenChange={(o) => !o && onClose()} direction="right">
+      <DrawerContent className="bg-background data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:top-0 data-[vaul-drawer-direction=right]:bottom-0 data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-[560px] data-[vaul-drawer-direction=right]:rounded-none data-[vaul-drawer-direction=right]:border-l data-[vaul-drawer-direction=right]:flex">
         <DrawerTitle className="sr-only">job detail</DrawerTitle>
         <DrawerDescription className="sr-only">
           {job ? `job ${job.id} in ${queueName}` : "loading"}
@@ -98,7 +96,9 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
         )}
 
         {!job && !error && (
-          <div className="p-6 font-mono text-sm text-muted-foreground">loading…</div>
+          <div className="p-6 font-mono text-sm text-muted-foreground">
+            loading…
+          </div>
         )}
 
         {job && (
@@ -126,7 +126,9 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
                   </Badge>
                   <span>·</span>
                   <span>attempts</span>
-                  <span className="font-mono text-foreground">{job.attemptsMade}</span>
+                  <span className="font-mono text-foreground">
+                    {job.attemptsMade}
+                  </span>
                 </div>
               </div>
               <div className="flex flex-col gap-1">
@@ -146,17 +148,29 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
 
             <div className="border-b bg-card px-4 py-2 flex gap-2">
               {scopes.has("retry") && (
-                <Button variant="outline" size="sm" onClick={() => runAction("retry")}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => runAction("retry")}
+                >
                   retry
                 </Button>
               )}
               {scopes.has("promote") && job.state === "delayed" && (
-                <Button variant="outline" size="sm" onClick={() => runAction("promote")}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => runAction("promote")}
+                >
                   promote
                 </Button>
               )}
               {scopes.has("remove") && (
-                <Button variant="destructive" size="sm" onClick={() => runAction("remove")}>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => runAction("remove")}
+                >
                   remove
                 </Button>
               )}
@@ -185,7 +199,10 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
                         </div>
                       }
                     >
-                      <JsonViewer value={job.returnValue} ariaLabel="return value" />
+                      <JsonViewer
+                        value={job.returnValue}
+                        ariaLabel="return value"
+                      />
                     </Suspense>
                   </Section>
                 )}
@@ -206,20 +223,29 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
                       window.dispatchEvent(
                         new CustomEvent("bv:select-job", {
                           detail: { id },
-                        }),
-                      )
+                        })
+                      );
                     }}
                   />
                 </Section>
 
                 <Section label="metadata">
                   <dl className="grid grid-cols-2 gap-2 font-mono text-[11px]">
-                    <Meta label="created" value={new Date(job.timestamp).toISOString()} />
+                    <Meta
+                      label="created"
+                      value={new Date(job.timestamp).toISOString()}
+                    />
                     {job.processedOn && (
-                      <Meta label="processed" value={new Date(job.processedOn).toISOString()} />
+                      <Meta
+                        label="processed"
+                        value={new Date(job.processedOn).toISOString()}
+                      />
                     )}
                     {job.finishedOn && (
-                      <Meta label="finished" value={new Date(job.finishedOn).toISOString()} />
+                      <Meta
+                        label="finished"
+                        value={new Date(job.finishedOn).toISOString()}
+                      />
                     )}
                   </dl>
                 </Section>
@@ -229,10 +255,16 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
         )}
       </DrawerContent>
     </Drawer>
-  )
+  );
 }
 
-function Section({ label, children }: { label: string; children: React.ReactNode }) {
+function Section({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
       <div className="text-muted-foreground mb-1 font-sans text-[10px] tracking-wide uppercase">
@@ -240,14 +272,16 @@ function Section({ label, children }: { label: string; children: React.ReactNode
       </div>
       {children}
     </div>
-  )
+  );
 }
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-sans">{label}</span>
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-sans">
+        {label}
+      </span>
       <span className="text-foreground truncate">{value}</span>
     </div>
-  )
+  );
 }

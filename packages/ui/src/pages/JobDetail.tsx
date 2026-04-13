@@ -1,52 +1,53 @@
-import { useEffect, useState } from "react"
-import { Link, useParams } from "@tanstack/react-router"
-import type { JobSnapshot } from "@bull-viewer/core"
-import { Button } from "../components/ui/button.tsx"
-import { useBullViewer } from "../context.tsx"
+import type { JobSnapshot } from "@bull-viewer/core";
+import { Link, useParams } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+
+import { Button } from "../components/ui/button.tsx";
+import { useBullViewer } from "../context.tsx";
 
 export function JobDetail() {
-  const { name, id } = useParams({ from: "/queues/$name/jobs/$id" })
-  const { api, scopes } = useBullViewer()
-  const [job, setJob] = useState<JobSnapshot | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+  const { name, id } = useParams({ from: "/queues/$name/jobs/$id" });
+  const { api, scopes } = useBullViewer();
+  const [job, setJob] = useState<JobSnapshot | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    let cancelled = false
+    let cancelled = false;
     api
       .getJob(name, id)
       .then((res) => {
-        if (!cancelled) setJob(res.job)
+        if (!cancelled) setJob(res.job);
       })
       .catch((err) => {
-        if (!cancelled) setError(String(err))
-      })
+        if (!cancelled) setError(String(err));
+      });
     return () => {
-      cancelled = true
-    }
-  }, [api, name, id])
+      cancelled = true;
+    };
+  }, [api, name, id]);
 
   async function runAction(action: "retry" | "remove") {
-    setBusy(true)
+    setBusy(true);
     try {
-      const result = await api.jobAction(name, id, action)
-      if ("error" in result) setError(result.error)
-      else if (action === "remove") {
+      await api.jobAction(name, id, action);
+      if (action === "remove") {
         // navigate back via window since we lack history nav here
-        history.back()
+        history.back();
       } else {
-        const refreshed = await api.getJob(name, id)
-        setJob(refreshed.job)
+        const refreshed = await api.getJob(name, id);
+        setJob(refreshed.job);
       }
     } catch (err) {
-      setError(String(err))
+      setError(String(err));
     } finally {
-      setBusy(false)
+      setBusy(false);
     }
   }
 
-  if (error) return <div className="text-destructive text-sm">{error}</div>
-  if (!job) return <div className="text-muted-foreground text-sm">Loading…</div>
+  if (error) return <div className="text-destructive text-sm">{error}</div>;
+  if (!job)
+    return <div className="text-muted-foreground text-sm">Loading…</div>;
 
   return (
     <div className="space-y-4">
@@ -114,15 +115,15 @@ export function JobDetail() {
         </Section>
       )}
     </div>
-  )
+  );
 }
 
 function Section({
   label,
   children,
 }: {
-  label: string
-  children: React.ReactNode
+  label: string;
+  children: React.ReactNode;
 }) {
   return (
     <div>
@@ -131,5 +132,5 @@ function Section({
       </div>
       {children}
     </div>
-  )
+  );
 }

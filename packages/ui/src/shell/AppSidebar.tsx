@@ -1,9 +1,16 @@
-"use client"
+"use client";
 
-import { useEffect, useMemo, useState } from "react"
-import { Link, useParams } from "@tanstack/react-router"
-import { useQuery } from "@tanstack/react-query"
-import { SearchIcon, StarIcon } from "lucide-react"
+import type { QueueSnapshot } from "@bull-viewer/core";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useParams } from "@tanstack/react-router";
+import { SearchIcon, StarIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Sidebar,
   SidebarContent,
@@ -16,62 +23,65 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
-import type { QueueSnapshot } from "@bull-viewer/core"
-import { useBullViewer } from "../context.tsx"
-import { StatusDot } from "./StatusDot.tsx"
+} from "@/components/ui/sidebar";
+
+import { useBullViewer } from "../context.tsx";
+import { StatusDot } from "./StatusDot.tsx";
 
 interface QueueGroup {
-  prefix: string | null
-  queues: QueueSnapshot[]
+  prefix: string | null;
+  queues: QueueSnapshot[];
 }
 
 function groupByPrefix(queues: QueueSnapshot[]): QueueGroup[] {
-  const groups = new Map<string, QueueSnapshot[]>()
+  const groups = new Map<string, QueueSnapshot[]>();
   for (const q of queues) {
-    const idx = q.name.indexOf(":")
-    const prefix = idx > 0 ? q.name.slice(0, idx) : ""
-    const list = groups.get(prefix) ?? []
-    list.push(q)
-    groups.set(prefix, list)
+    const idx = q.name.indexOf(":");
+    const prefix = idx > 0 ? q.name.slice(0, idx) : "";
+    const list = groups.get(prefix) ?? [];
+    list.push(q);
+    groups.set(prefix, list);
   }
   return [...groups.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([prefix, queues]) => ({
       prefix: prefix || null,
       queues: queues.sort((a, b) => a.name.localeCompare(b.name)),
-    }))
+    }));
 }
 
-function healthState(q: QueueSnapshot): "completed" | "delayed" | "failed" | "paused" {
-  if (q.isPaused) return "paused"
-  if (q.counts.failed > 0) return "failed"
-  if (q.counts.delayed > 0 || q.counts.waiting > 100) return "delayed"
-  return "completed"
+function healthState(
+  q: QueueSnapshot
+): "completed" | "delayed" | "failed" | "paused" {
+  if (q.isPaused) return "paused";
+  if (q.counts.failed > 0) return "failed";
+  if (q.counts.delayed > 0 || q.counts.waiting > 100) return "delayed";
+  return "completed";
 }
 
 export function AppSidebar() {
-  const { api } = useBullViewer()
-  const params = useParams({ strict: false }) as { name?: string }
-  const activeName = params.name
-  const [filter, setFilter] = useState("")
-  const { state } = useSidebar()
-  const collapsed = state === "collapsed"
+  const { api } = useBullViewer();
+  const params = useParams({ strict: false }) as { name?: string };
+  const activeName = params.name;
+  const [filter, setFilter] = useState("");
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
 
   const { data } = useQuery({
     queryKey: ["queues"],
     queryFn: () => api.listQueues(),
     refetchInterval: 5000,
-  })
+  });
 
   const groups = useMemo(() => {
-    const queues = data?.queues ?? []
+    const queues = data?.queues ?? [];
     const filtered = filter
-      ? queues.filter((q) => q.name.toLowerCase().includes(filter.toLowerCase()))
-      : queues
-    return groupByPrefix(filtered)
-  }, [data, filter])
+      ? queues.filter((q) =>
+          q.name.toLowerCase().includes(filter.toLowerCase())
+        )
+      : queues;
+    return groupByPrefix(filtered);
+  }, [data, filter]);
 
   return (
     <Sidebar collapsible="icon">
@@ -110,7 +120,7 @@ export function AppSidebar() {
               {group.queues.map((q) => {
                 const shortName = group.prefix
                   ? q.name.slice(group.prefix.length + 1)
-                  : q.name
+                  : q.name;
                 return (
                   <SidebarMenuItem key={q.name}>
                     <SidebarMenuButton
@@ -126,7 +136,7 @@ export function AppSidebar() {
                       }
                     />
                   </SidebarMenuItem>
-                )
+                );
               })}
             </SidebarMenu>
           </SidebarGroup>
@@ -153,20 +163,20 @@ export function AppSidebar() {
 
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
 
 /** Listens for ⌘\ to toggle sidebar — wired from the parent shell. */
 export function useSidebarKeyboardToggle() {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar } = useSidebar();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
-        e.preventDefault()
-        toggleSidebar()
+        e.preventDefault();
+        toggleSidebar();
       }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [toggleSidebar])
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleSidebar]);
 }

@@ -2,5 +2,5 @@
 const nextConfig = {
   transpilePackages: ["@bull-viewer/ui", "@bull-viewer/next"],
   serverExternalPackages: ["bullmq", "ioredis"],
-}
-export default nextConfig
+};
+export default nextConfig;

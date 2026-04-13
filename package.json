@@ -1,21 +1,31 @@
 {
   "name": "bullmq-viewer",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "workspaces": [
     "packages/*",
     "examples/*"
   ],
+  "type": "module",
   "scripts": {
     "typecheck": "bun --filter '*' typecheck",
+    "lint": "bun --filter '*' lint",
+    "check": "ultracite check --type-aware --type-check",
+    "fix": "ultracite fix --type-aware --type-check",
+    "fix:unsafe": "ultracite fix --unsafe --type-aware --type-check",
+    "format:tailwind": "prettier --write 'packages/ui/src/**/*.{ts,tsx}'",
     "build": "bun --filter '@bull-viewer/*' build",
     "dev:standalone": "bun --filter @bull-viewer/standalone dev",
     "dev:next-embed": "bun --filter example-next-embed dev",
     "seed": "bun --filter example-seed-bullmq seed"
   },
   "devDependencies": {
+    "@typescript/native-preview": "7.0.0-dev.20260413.1",
+    "oxfmt": "^0.44.0",
+    "oxlint": "^1.59.0",
+    "oxlint-tsgolint": "^0.20.0",
     "shadcn": "^4.2.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "ultracite": "^7.5.6"
   }
 }
