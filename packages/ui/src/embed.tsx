@@ -2,11 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { RouterProvider } from "@tanstack/react-router"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import type { Scope, Viewer } from "@bull-viewer/core"
 import { ALL_SCOPES } from "@bull-viewer/core"
 import { createApiClient } from "./api-client.ts"
 import { BullViewerProvider } from "./context.tsx"
 import { createBullViewerRouter } from "./router.tsx"
+import { useTheme } from "./hooks/use-theme.ts"
+import { useDensity } from "./hooks/use-density.ts"
 import "./styles.css"
 
 export interface BullViewerAppProps {
@@ -15,6 +18,18 @@ export interface BullViewerAppProps {
   viewer?: Viewer | null
   scopes?: Scope[]
   history?: "browser" | "memory"
+}
+
+function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5_000,
+        refetchOnWindowFocus: false,
+        retry: 1,
+      },
+    },
+  })
 }
 
 export function BullViewerApp(props: BullViewerAppProps) {
@@ -29,6 +44,8 @@ export function BullViewerApp(props: BullViewerAppProps) {
     })
   }, [mounted, props.basePath, props.history])
 
+  const queryClient = useMemo(() => makeQueryClient(), [])
+
   const value = useMemo(
     () => ({
       api: createApiClient(props.apiBase),
@@ -38,18 +55,33 @@ export function BullViewerApp(props: BullViewerAppProps) {
     [props.apiBase, props.viewer, props.scopes],
   )
 
+  // Apply theme + density classes to the bv-root wrapper so they take effect
+  // even when embedded (we don't own <html>).
+  const { resolved: theme } = useTheme()
+  const { density } = useDensity()
+  const rootClassName = `bv-root bg-background text-foreground min-h-svh ${
+    theme === "dark" ? "dark" : ""
+  }`
+
   if (!router) {
     return (
-      <div className="bv-root bg-background text-foreground min-h-svh">
-        <div className="text-muted-foreground p-6 text-sm">Loading…</div>
+      <div className={rootClassName} data-density={density}>
+        <div className="text-muted-foreground p-6 font-mono text-sm">
+          <span className="bv-caret" />
+          loading bull-viewer
+        </div>
       </div>
     )
   }
 
   return (
-    <BullViewerProvider value={value}>
-      <RouterProvider router={router} />
-    </BullViewerProvider>
+    <div className={rootClassName} data-density={density}>
+      <QueryClientProvider client={queryClient}>
+        <BullViewerProvider value={value}>
+          <RouterProvider router={router} />
+        </BullViewerProvider>
+      </QueryClientProvider>
+    </div>
   )
 }
 

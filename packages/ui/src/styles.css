@@ -4,10 +4,13 @@
 @import "@fontsource-variable/geist-mono";
 @import "@fontsource-variable/geist";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark, .dark *));
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Light theme (zinc / refined utilitarian)
+   ────────────────────────────────────────────────────────────────────────── */
 :root {
-    --background: oklch(1 0 0);
+    --background: oklch(0.99 0 0);
     --foreground: oklch(0.141 0.005 285.823);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.141 0.005 285.823);
@@ -21,7 +24,7 @@
     --muted-foreground: oklch(0.552 0.016 285.938);
     --accent: oklch(0.967 0.001 286.375);
     --accent-foreground: oklch(0.21 0.006 285.885);
-    --destructive: oklch(0.577 0.245 27.325);
+    --destructive: oklch(0.65 0.21 20);
     --border: oklch(0.92 0.004 286.32);
     --input: oklch(0.92 0.004 286.32);
     --ring: oklch(0.705 0.015 286.067);
@@ -39,45 +42,96 @@
     --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
     --sidebar-border: oklch(0.92 0.004 286.32);
     --sidebar-ring: oklch(0.705 0.015 286.067);
+
+    /* status semantics — Sentry-ish, no pure red */
+    --status-waiting:    oklch(0.65 0.02 270);
+    --status-active:     oklch(0.55 0.20 240);
+    --status-completed:  oklch(0.55 0.16 160);
+    --status-failed:     oklch(0.55 0.21 20);
+    --status-delayed:    oklch(0.62 0.17 75);
+    --status-paused:     oklch(0.55 0.01 270);
+    --status-stalled:    oklch(0.56 0.21 40);
+    --status-children:   oklch(0.52 0.20 290);
+
+    /* signal accent — live indicator + cmd-k focus ring */
+    --signal:            oklch(0.62 0.17 75);
+
+    /* chart series colors (uPlot, not Recharts) */
+    --chart-completed:   var(--status-completed);
+    --chart-failed:      var(--status-failed);
+    --chart-p50:         oklch(0.58 0.10 240 / 0.55);
+    --chart-p95:         oklch(0.58 0.14 240 / 0.80);
+    --chart-p99:         oklch(0.58 0.18 240);
+    --chart-threshold:   oklch(0.45 0.02 270 / 0.40);
+    --chart-gridline:    oklch(0.92 0.005 270);
+
+    /* density */
+    --row-height-compact: 32px;
+    --row-height-cozy:    44px;
+    --row-height:         var(--row-height-compact);
+    --font-size-data:     13px;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Dark theme (zinc-950 base — refined utilitarian, NOT slate)
+   ────────────────────────────────────────────────────────────────────────── */
 .dark {
-    --background: oklch(0.141 0.005 285.823);
+    --background: oklch(0.115 0.003 285);   /* zinc-950 */
     --foreground: oklch(0.985 0 0);
-    --card: oklch(0.21 0.006 285.885);
+    --card: oklch(0.16 0.004 285);          /* zinc-900 */
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.21 0.006 285.885);
+    --popover: oklch(0.16 0.004 285);
     --popover-foreground: oklch(0.985 0 0);
     --primary: oklch(0.92 0.004 286.32);
     --primary-foreground: oklch(0.21 0.006 285.885);
-    --secondary: oklch(0.274 0.006 286.033);
+    --secondary: oklch(0.21 0.006 285);
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.274 0.006 286.033);
-    --muted-foreground: oklch(0.705 0.015 286.067);
-    --accent: oklch(0.274 0.006 286.033);
+    --muted: oklch(0.21 0.006 285);
+    --muted-foreground: oklch(0.65 0.012 286);
+    --accent: oklch(0.21 0.006 285);
     --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.552 0.016 285.938);
-    --chart-1: oklch(0.871 0.006 286.286);
-    --chart-2: oklch(0.552 0.016 285.938);
-    --chart-3: oklch(0.442 0.017 285.786);
-    --chart-4: oklch(0.37 0.013 285.805);
-    --chart-5: oklch(0.274 0.006 286.033);
-    --sidebar: oklch(0.21 0.006 285.885);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --destructive: oklch(0.66 0.21 20);
+    --border: oklch(1 0 0 / 8%);
+    --input: oklch(1 0 0 / 12%);
+    --ring: oklch(0.55 0.016 285.938);
+    --sidebar: oklch(0.13 0.003 285);       /* slightly lighter than bg */
+    --sidebar-foreground: oklch(0.92 0 0);
+    --sidebar-primary: oklch(0.62 0.17 75);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.274 0.006 286.033);
+    --sidebar-accent: oklch(0.21 0.006 285);
     --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.552 0.016 285.938);
+    --sidebar-border: oklch(1 0 0 / 6%);
+    --sidebar-ring: oklch(0.78 0.17 75);
+
+    /* dark-mode status — slightly brighter for legibility on dark */
+    --status-waiting:    oklch(0.71 0.02 270);
+    --status-active:     oklch(0.66 0.18 240);
+    --status-completed:  oklch(0.70 0.16 160);
+    --status-failed:     oklch(0.67 0.21 20);
+    --status-delayed:    oklch(0.78 0.17 75);
+    --status-paused:     oklch(0.65 0.01 270);
+    --status-stalled:    oklch(0.66 0.21 40);
+    --status-children:   oklch(0.62 0.20 290);
+
+    --signal:            oklch(0.78 0.17 75);
+
+    --chart-completed:   var(--status-completed);
+    --chart-failed:      var(--status-failed);
+    --chart-p50:         oklch(0.68 0.10 240 / 0.55);
+    --chart-p95:         oklch(0.68 0.14 240 / 0.80);
+    --chart-p99:         oklch(0.68 0.18 240);
+    --chart-threshold:   oklch(0.55 0.02 270 / 0.40);
+    --chart-gridline:    oklch(0.22 0.005 270);
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Tailwind theme inline mappings
+   ────────────────────────────────────────────────────────────────────────── */
 @theme inline {
     --font-mono: 'Geist Mono Variable', monospace;
     --font-heading: 'Geist Variable', sans-serif;
+    --font-sans: 'Geist Variable', sans-serif;
+
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -109,6 +163,18 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
+
+    /* status colors — exposed as Tailwind utilities (bg-status-failed, text-status-failed) */
+    --color-status-waiting: var(--status-waiting);
+    --color-status-active: var(--status-active);
+    --color-status-completed: var(--status-completed);
+    --color-status-failed: var(--status-failed);
+    --color-status-delayed: var(--status-delayed);
+    --color-status-paused: var(--status-paused);
+    --color-status-stalled: var(--status-stalled);
+    --color-status-children: var(--status-children);
+    --color-signal: var(--signal);
+
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -118,14 +184,76 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Density data attribute
+   ────────────────────────────────────────────────────────────────────────── */
+[data-density="cozy"]    { --row-height: var(--row-height-cozy); }
+[data-density="compact"] { --row-height: var(--row-height-compact); }
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Animations (CSS only — no framer-motion)
+   ────────────────────────────────────────────────────────────────────────── */
+@keyframes bv-caret {
+    0%, 49%   { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+
+@keyframes bv-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.55; transform: scale(0.92); }
+}
+
+@keyframes bv-shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-3px); }
+    75%      { transform: translateX(3px); }
+}
+
+@keyframes bv-spin {
+    to { transform: rotate(360deg); }
+}
+
+.bv-caret::before {
+    content: "▌";
+    display: inline-block;
+    margin-right: 0.25em;
+    color: var(--signal);
+    animation: bv-caret 1s step-end infinite;
+}
+
+.bv-pulse {
+    animation: bv-pulse 1.6s ease-in-out infinite;
+}
+
+.bv-shake {
+    animation: bv-shake 400ms ease-in-out 1;
+}
+
+.bv-spin {
+    animation: bv-spin 1.2s linear infinite;
+}
+
+/* tabular numerals helper */
+.tnum {
+    font-feature-settings: 'tnum' 1, 'cv11' 1;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Base layer
+   ────────────────────────────────────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
     }
-  body {
-    @apply bg-background text-foreground;
+
+    body {
+        @apply bg-background text-foreground;
     }
-  html {
-    @apply font-mono;
+
+    /* Typography inversion — Geist Mono is the default for everything */
+    html {
+        @apply font-mono;
+        font-feature-settings: 'tnum' 1, 'cv11' 1;
+        letter-spacing: -0.005em;
     }
 }

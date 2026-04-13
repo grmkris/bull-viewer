@@ -5,12 +5,18 @@ import {
   createBrowserHistory,
   createMemoryHistory,
   Outlet,
-  Link,
 } from "@tanstack/react-router"
 import type { RouterHistory } from "@tanstack/react-router"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Toaster } from "@/components/ui/sonner"
 import { QueueList } from "./pages/QueueList.tsx"
 import { QueueDetail } from "./pages/QueueDetail.tsx"
 import { JobDetail } from "./pages/JobDetail.tsx"
+import { AppSidebar } from "./shell/AppSidebar.tsx"
+import { AppHeader } from "./shell/AppHeader.tsx"
+import { MobileTabBar } from "./shell/MobileTabBar.tsx"
+import { CommandPalette } from "./shell/CommandPalette.tsx"
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -60,24 +66,25 @@ export function createBullViewerRouter(
 
 function RootLayout() {
   return (
-    <div className="bv-root bg-background text-foreground min-h-svh">
-      <header className="bg-card sticky top-0 z-10 border-b">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-          <Link
-            to="/"
-            className="font-heading text-sm font-semibold tracking-tight"
-          >
-            bull-viewer
-          </Link>
-          <span className="text-muted-foreground text-[0.625rem] uppercase">
-            BullMQ
-          </span>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl p-4">
-        <Outlet />
-      </main>
-    </div>
+    <TooltipProvider delay={300}>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className="bg-background flex min-w-0 flex-col">
+          <AppHeader />
+          <main className="flex-1 overflow-x-hidden p-4 pb-20 md:pb-4">
+            <Outlet />
+          </main>
+        </SidebarInset>
+        <MobileTabBar />
+        <CommandPalette />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            classNames: { toast: "font-sans" },
+          }}
+        />
+      </SidebarProvider>
+    </TooltipProvider>
   )
 }
 
