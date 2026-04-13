@@ -4,7 +4,10 @@ import { serveStatic } from "hono/bun"
 import { serve } from "@hono/node-server"
 import IORedis from "ioredis"
 import { createHandler } from "@bull-viewer/api"
-import { createRegistry } from "@bull-viewer/core/server"
+import {
+  createMetricsCollector,
+  createRegistry,
+} from "@bull-viewer/core/server"
 import { createAuthorize, type AuthMode } from "./auth.ts"
 
 const REDIS_URL = process.env.REDIS_URL ?? "redis://localhost:6379"
@@ -26,6 +29,13 @@ if (QUEUES.length === 0) {
 
 const connection = new IORedis(REDIS_URL, { maxRetriesPerRequest: null })
 const registry = createRegistry({ connection, queues: QUEUES })
+
+// Start metrics collector — subscribes to QueueEvents + 60s snapshot interval
+const collector = createMetricsCollector({
+  connection,
+  queues: () => registry.getAll(),
+})
+void collector.start()
 
 const authorize = createAuthorize({
   mode: AUTH_MODE,
@@ -56,15 +66,23 @@ app.use(
   }),
 )
 
-// SPA fallback — any unknown path returns index.html for client-side routing
 app.notFound(async (c) => {
   const html = await Bun.file(`${UI_DIST}/index.html`).text()
   return c.html(html)
 })
+
+const onShutdown = async () => {
+  await collector.stop()
+  await registry.close()
+  process.exit(0)
+}
+process.on("SIGINT", onShutdown)
+process.on("SIGTERM", onShutdown)
 
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(`[bull-viewer] listening on http://localhost:${info.port}`)
   console.log(`[bull-viewer] redis: ${REDIS_URL}`)
   console.log(`[bull-viewer] queues: ${QUEUES.join(", ") || "(none)"}`)
   console.log(`[bull-viewer] auth: ${AUTH_MODE}`)
+  console.log(`[bull-viewer] metrics collector: started`)
 })

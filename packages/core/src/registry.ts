@@ -10,6 +10,7 @@ export interface QueueRegistry {
   readonly connection: ConnectionOptions
   listQueueNames(): string[]
   getQueue(name: string): Queue | undefined
+  getAll(): Map<string, Queue>
   close(): Promise<void>
 }
 
@@ -31,6 +32,9 @@ export function createRegistry(options: RegistryOptions): QueueRegistry {
     },
     getQueue(name) {
       return queues.get(name)
+    },
+    getAll() {
+      return new Map(queues)
     },
     async close() {
       await Promise.all([...queues.values()].map((q) => q.close()))

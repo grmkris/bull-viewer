@@ -31,10 +31,12 @@ const indexRoute = createRoute({
 })
 
 const queueSearchSchema = z.object({
+  tab: z.enum(["overview", "jobs"]).optional(),
   states: z.array(z.enum(JOB_STATES)).optional(),
   name: z.string().optional(),
   job: z.string().optional(),
   live: z.boolean().optional(),
+  range: z.enum(["15m", "1h", "6h", "24h", "7d"]).optional(),
 })
 
 const queueRoute = createRoute({

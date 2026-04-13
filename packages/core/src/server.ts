@@ -20,3 +20,11 @@ export {
 
 export type { QueueEventMessage, QueueEventListener } from "./bullmq/events.ts"
 export { subscribeQueueEvents } from "./bullmq/events.ts"
+
+export type {
+  MetricsCollector,
+  CreateCollectorOptions,
+  MetricBucket,
+  ReadMetricsOptions,
+} from "./bullmq/metrics.ts"
+export { createMetricsCollector, readMetrics } from "./bullmq/metrics.ts"
