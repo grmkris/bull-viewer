@@ -28,3 +28,10 @@ export type {
   ReadMetricsOptions,
 } from "./bullmq/metrics.ts"
 export { createMetricsCollector, readMetrics } from "./bullmq/metrics.ts"
+
+export type {
+  SearchInput,
+  SearchResult,
+  SearchProvider,
+} from "./bullmq/search.ts"
+export { RedisScanSearchProvider } from "./bullmq/search.ts"

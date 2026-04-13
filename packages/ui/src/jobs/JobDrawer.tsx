@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -16,6 +16,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useBullViewer } from "../context.tsx"
 import { StatusDot } from "../shell/StatusDot.tsx"
 import { Link } from "@tanstack/react-router"
+import { StackTraceViewer } from "./StackTraceViewer.tsx"
+
+// Lazy-load CodeMirror so the ~150 KB of editor code only ships when the
+// drawer actually opens (and even then, only on the first job's data tab).
+const JsonViewer = lazy(() =>
+  import("./JsonViewer.tsx").then((m) => ({ default: m.JsonViewer })),
+)
 
 interface JobDrawerProps {
   queueName: string
@@ -157,26 +164,36 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
             <ScrollArea className="flex-1">
               <div className="space-y-4 p-4">
                 <Section label="data">
-                  <pre className="bg-muted/30 overflow-auto rounded-sm p-3 font-mono text-[11px] leading-relaxed">
-                    {JSON.stringify(job.data, null, 2)}
-                  </pre>
+                  <Suspense
+                    fallback={
+                      <div className="text-muted-foreground font-mono text-[11px]">
+                        loading viewer…
+                      </div>
+                    }
+                  >
+                    <JsonViewer value={job.data} ariaLabel="job data" />
+                  </Suspense>
                 </Section>
 
                 {job.returnValue !== undefined && job.returnValue !== null && (
                   <Section label="return value">
-                    <pre className="bg-muted/30 overflow-auto rounded-sm p-3 font-mono text-[11px] leading-relaxed">
-                      {JSON.stringify(job.returnValue, null, 2)}
-                    </pre>
+                    <Suspense
+                      fallback={
+                        <div className="text-muted-foreground font-mono text-[11px]">
+                          loading…
+                        </div>
+                      }
+                    >
+                      <JsonViewer value={job.returnValue} ariaLabel="return value" />
+                    </Suspense>
                   </Section>
                 )}
 
                 {job.failedReason && (
-                  <Section label="failure">
-                    <pre className="bg-status-failed/10 text-status-failed overflow-auto rounded-sm p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
-                      {job.failedReason}
-                      {job.stacktrace.length > 0 && "\n\n" + job.stacktrace.join("\n")}
-                    </pre>
-                  </Section>
+                  <StackTraceViewer
+                    message={job.failedReason}
+                    stacktrace={job.stacktrace}
+                  />
                 )}
 
                 <Section label="metadata">

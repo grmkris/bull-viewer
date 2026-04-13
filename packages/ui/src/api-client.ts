@@ -29,6 +29,13 @@ export interface BulkActionResponse {
   errors: { id: string; reason: string }[]
 }
 
+export interface SearchResult {
+  jobs: JobSnapshot[]
+  truncated: boolean
+  scanned: number
+  durationMs: number
+}
+
 export interface ApiClient {
   apiBase: string
   me(): Promise<{ viewer: Viewer | null; scopes: Scope[] }>
@@ -42,6 +49,11 @@ export interface ApiClient {
     action: "retry" | "remove" | "promote",
   ): Promise<{ ok: true } | { error: string }>
   bulkAction(name: string, body: BulkActionRequest): Promise<BulkActionResponse>
+  searchJobs(
+    name: string,
+    query: string,
+    options?: { limit?: number; signal?: AbortSignal; states?: JobState[] },
+  ): Promise<SearchResult>
   /** Build the SSE URL for a queue. Caller wraps in EventSource. */
   eventsUrl(name: string): string
 }
@@ -85,6 +97,20 @@ export function createApiClient(apiBase: string): ApiClient {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       }),
+    searchJobs: async (name, query, options = {}) => {
+      const qs = new URLSearchParams({ q: query })
+      if (options.limit) qs.set("limit", String(options.limit))
+      for (const s of options.states ?? []) qs.append("state", s)
+      const res = await fetch(
+        `${base}/queues/${encodeURIComponent(name)}/search?${qs}`,
+        { signal: options.signal },
+      )
+      if (!res.ok) {
+        const text = await res.text().catch(() => res.statusText)
+        throw new Error(`API ${res.status}: ${text}`)
+      }
+      return (await res.json()) as SearchResult
+    },
     eventsUrl: (name) => `${base}/queues/${encodeURIComponent(name)}/events`,
   }
 }
