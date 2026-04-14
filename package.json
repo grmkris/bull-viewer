@@ -20,6 +20,7 @@
     "seed": "bun --filter example-seed-bullmq seed"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.6.0",
     "@typescript/native-preview": "7.0.0-dev.20260413.1",
     "oxfmt": "^0.44.0",
     "oxlint": "^1.59.0",

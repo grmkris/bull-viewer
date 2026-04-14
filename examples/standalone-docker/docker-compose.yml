@@ -1,0 +1,42 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  bull-viewer:
+    image: grmkris/bull-viewer:latest
+    # Or to build from source:
+    # build:
+    #   context: ../..
+    #   dockerfile: Dockerfile
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      REDIS_URL: redis://redis:6379
+      BULL_VIEWER_QUEUES: emails,reports
+      # Optional basic auth
+      # BULL_VIEWER_AUTH_MODE: basic
+      # BULL_VIEWER_AUTH_USER: admin
+      # BULL_VIEWER_AUTH_PASS: change-me
+
+  # Optional: a tiny seeder so the dashboard isn't empty
+  seeder:
+    image: oven/bun:1.3-slim
+    depends_on:
+      redis:
+        condition: service_healthy
+    working_dir: /seed
+    volumes:
+      - ./seed.ts:/seed/seed.ts:ro
+    environment:
+      REDIS_URL: redis://redis:6379
+    command: ["bun", "run", "seed.ts"]

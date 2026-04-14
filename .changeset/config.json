@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.3/schema.json",
+  "changelog": ["@changesets/changelog-github", { "repo": "grmkris/bull-viewer" }],
+  "commit": false,
+  "fixed": [
+    [
+      "@grmkris/bull-viewer-core",
+      "@grmkris/bull-viewer-api",
+      "@grmkris/bull-viewer-ui",
+      "@grmkris/bull-viewer-next",
+      "@grmkris/bull-viewer-standalone"
+    ]
+  ],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["example-next-embed", "example-seed-bullmq"]
+}

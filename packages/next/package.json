@@ -1,10 +1,29 @@
 {
   "name": "@grmkris/bull-viewer-next",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Next.js page + route handlers for embedding bull-viewer",
+  "license": "MIT",
+  "author": "Kristjan Grm",
+  "homepage": "https://github.com/grmkris/bull-viewer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grmkris/bull-viewer.git",
+    "directory": "packages/next"
+  },
   "type": "module",
+  "files": [
+    "src",
+    "package.json",
+    "README.md"
+  ],
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "typecheck": "tsgo --noEmit",

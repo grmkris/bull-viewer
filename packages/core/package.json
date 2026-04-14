@@ -1,11 +1,33 @@
 {
   "name": "@grmkris/bull-viewer-core",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "BullMQ adapter, registry, and snapshot helpers for bull-viewer",
+  "license": "MIT",
+  "author": "Kristjan Grm",
+  "homepage": "https://github.com/grmkris/bull-viewer",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/grmkris/bull-viewer.git",
+    "directory": "packages/core"
+  },
   "type": "module",
+  "files": [
+    "src",
+    "package.json",
+    "README.md"
+  ],
   "exports": {
-    ".": "./src/index.ts",
-    "./server": "./src/server.ts"
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./server": {
+      "types": "./src/server.ts",
+      "default": "./src/server.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "typecheck": "tsgo --noEmit",
