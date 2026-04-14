@@ -14,7 +14,7 @@ ENV NODE_ENV=production \
     PORT=3000 \
     BULL_VIEWER_AUTH_MODE=none
 
-# Copy only what the standalone runtime needs: source for the five workspace
+# Copy only what the standalone runtime needs: source for the six workspace
 # packages it imports (bun runs TS directly) + node_modules + UI dist.
 COPY --from=build /app/node_modules            ./node_modules
 COPY --from=build /app/package.json            ./package.json
@@ -22,6 +22,8 @@ COPY --from=build /app/packages/core/src       ./packages/core/src
 COPY --from=build /app/packages/core/package.json   ./packages/core/package.json
 COPY --from=build /app/packages/api/src        ./packages/api/src
 COPY --from=build /app/packages/api/package.json    ./packages/api/package.json
+COPY --from=build /app/packages/mcp/src        ./packages/mcp/src
+COPY --from=build /app/packages/mcp/package.json    ./packages/mcp/package.json
 COPY --from=build /app/packages/standalone/src ./packages/standalone/src
 COPY --from=build /app/packages/standalone/package.json ./packages/standalone/package.json
 COPY --from=build /app/packages/ui/dist        ./packages/ui/dist
