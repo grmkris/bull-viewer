@@ -106,28 +106,38 @@ export function fakeQueue(options: FakeQueueOptions = {}): Queue {
   const byState = (state: string) =>
     jobs.filter((j) => (j.state ?? "waiting") === state);
 
+  // Cast `counts` once to a string-indexable view so the fake getters can
+  // do dynamic key lookups without each call re-asserting the conversion.
+  // `JobCounts` is a closed shape so TS won't index into it directly.
+  const countsByName = counts as unknown as Record<string, number>;
+
   const stub: Partial<Queue> = {
     name,
-    getJobCounts: async (..._types: string[]) =>
-      counts as unknown as Record<string, number>,
-    getJobCountByTypes: async (..._types: string[]) => {
+    getJobCounts: (async (..._types: string[]) => countsByName) as unknown as Queue["getJobCounts"],
+    getJobCountByTypes: (async (..._types: string[]) => {
       let total = 0;
-      for (const t of _types as string[]) {
-        total += (counts as Record<string, number>)[t] ?? 0;
+      for (const t of _types) {
+        total += countsByName[t] ?? 0;
       }
       return total;
-    },
-    getJobs: async (types: string[], start = 0, end = -1, _asc = true) => {
+    }) as unknown as Queue["getJobCountByTypes"],
+    getJobs: (async (
+      types: string[] | string = [],
+      start = 0,
+      end = -1,
+      _asc = true,
+    ) => {
+      const typeList = Array.isArray(types) ? types : [types];
       const matched: unknown[] = [];
-      for (const t of types) {
+      for (const t of typeList) {
         for (const j of byState(t)) {
           matched.push(makeJob(j));
         }
       }
       const slice =
         end === -1 ? matched.slice(start) : matched.slice(start, end + 1);
-      return slice as unknown as ReturnType<Queue["getJobs"]>;
-    },
+      return slice;
+    }) as unknown as Queue["getJobs"],
     getJob: (async (id: string) => {
       const j = jobs.find((x) => x.id === id);
       return j ? (makeJob(j) as unknown) : null;
@@ -173,7 +183,7 @@ export function createFakeRegistry(
 /**
  * Build a `ViewerContext` for direct `call(procedure, input, { context })`.
  * Defaults: no viewer, `["read"]` scope only, not read-only, silent logger,
- * no registered queues.
+ * synthesized `tenantId: "test"`, no registered queues.
  */
 export function createTestContext(
   options: CreateTestContextOptions = {}
@@ -187,6 +197,7 @@ export function createTestContext(
     readOnly: options.readOnly ?? false,
     headers: new Headers(),
     requestId: "test",
+    tenantId: "test",
     logger: silentLogger,
     ...options.overrides,
   };
