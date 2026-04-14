@@ -23,16 +23,16 @@ an embedded route inside your Next.js app — same UI, same RBAC, your auth.
 
 ## Why another BullMQ dashboard
 
-| | bull-board | bull-viewer |
-|---|---|---|
-| Live tail (SSE) | manual refresh | yes |
-| Embed in Next.js with host auth | partial | first-class |
-| Multi-tenant (one UI, many Redis) | no | yes |
-| Job payload viewer | text | CodeMirror + JSON tree |
-| Flow visualization | no | yes (xyflow) |
-| Full-text search across jobs | no | tier 0/1/2 (id, name, payload) |
-| RBAC scopes | basic | typed scopes per action |
-| Bundle (gz) | ~360 KB | 205 KB base + lazy chunks |
+|                                   | bull-board     | bull-viewer                    |
+| --------------------------------- | -------------- | ------------------------------ |
+| Live tail (SSE)                   | manual refresh | yes                            |
+| Embed in Next.js with host auth   | partial        | first-class                    |
+| Multi-tenant (one UI, many Redis) | no             | yes                            |
+| Job payload viewer                | text           | CodeMirror + JSON tree         |
+| Flow visualization                | no             | yes (xyflow)                   |
+| Full-text search across jobs      | no             | tier 0/1/2 (id, name, payload) |
+| RBAC scopes                       | basic          | typed scopes per action        |
+| Bundle (gz)                       | ~360 KB        | 205 KB base + lazy chunks      |
 
 ## Quick start — Docker
 
@@ -111,13 +111,13 @@ import "@grmkris/bull-viewer-ui/styles.css";
 
 ## Scopes (RBAC)
 
-| scope | enables |
-|---|---|
-| `read` | view queues, jobs, payloads, metrics |
-| `retry` | re-enqueue failed jobs |
-| `remove` | delete jobs |
-| `pause` | pause / resume queues |
-| `promote` | promote delayed jobs |
+| scope     | enables                              |
+| --------- | ------------------------------------ |
+| `read`    | view queues, jobs, payloads, metrics |
+| `retry`   | re-enqueue failed jobs               |
+| `remove`  | delete jobs                          |
+| `pause`   | pause / resume queues                |
+| `promote` | promote delayed jobs                 |
 
 Return the scopes array from your `authorize` callback per request. If you
 omit `scopes`, the viewer is treated as **read-only** by default.
@@ -135,13 +135,13 @@ omit `scopes`, the viewer is treated as **read-only** by default.
 
 Five workspace packages:
 
-| package | role |
-|---|---|
-| `@grmkris/bull-viewer-core` | BullMQ adapter, registry, snapshot helpers |
-| `@grmkris/bull-viewer-api` | oRPC routers, scope middleware, typed errors |
-| `@grmkris/bull-viewer-ui` | React app, embed entry, library bundle |
-| `@grmkris/bull-viewer-standalone` | Hono server (Docker target) |
-| `@grmkris/bull-viewer-next` | Next.js page + route helpers |
+| package                           | role                                         |
+| --------------------------------- | -------------------------------------------- |
+| `@grmkris/bull-viewer-core`       | BullMQ adapter, registry, snapshot helpers   |
+| `@grmkris/bull-viewer-api`        | oRPC routers, scope middleware, typed errors |
+| `@grmkris/bull-viewer-ui`         | React app, embed entry, library bundle       |
+| `@grmkris/bull-viewer-standalone` | Hono server (Docker target)                  |
+| `@grmkris/bull-viewer-next`       | Next.js page + route helpers                 |
 
 ## Roadmap
 

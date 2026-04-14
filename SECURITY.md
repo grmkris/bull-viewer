@@ -22,7 +22,7 @@ Out of scope:
 
 - Vulnerabilities in BullMQ, Redis, or other upstream dependencies — please
   report those upstream
-- Issues in host applications that *embed* `@grmkris/bull-viewer-next`
+- Issues in host applications that _embed_ `@grmkris/bull-viewer-next`
   incorrectly (e.g. forwarding cookies to an untrusted origin)
 
 ## Supported versions

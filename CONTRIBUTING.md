@@ -46,7 +46,7 @@ examples/
 - TypeScript strict, ESM only.
 - Lint + format via `ultracite` (oxlint + oxfmt). Run `bun fix` before
   committing — CI is strict.
-- No comments unless the *why* is non-obvious.
+- No comments unless the _why_ is non-obvious.
 - Bundle budgets are load-bearing; new dependencies go through
   `scripts/bundle-guard.ts`.
 

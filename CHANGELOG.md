@@ -32,4 +32,4 @@ Initial public release.
   ≤ 110 KB, QueueOverview ≤ 60 KB. Enforced in CI.
 - **Procedure tests** — 13 `bun test` cases covering scope checks, readOnly
   enforcement, and happy-path snapshot returns. Direct `call(procedure,
-  input, { context })` against fake registries — no Docker required.
+input, { context })` against fake registries — no Docker required.
