@@ -1,6 +1,6 @@
-import type { Scope, Viewer } from "@bull-viewer/core";
-import { READ_ONLY_SCOPES } from "@bull-viewer/core";
-import type { QueueRegistry, SearchProvider } from "@bull-viewer/core/server";
+import type { Scope, Viewer } from "@grmkris/bull-viewer-core";
+import { READ_ONLY_SCOPES } from "@grmkris/bull-viewer-core";
+import type { QueueRegistry, SearchProvider } from "@grmkris/bull-viewer-core/server";
 import type { Queue } from "bullmq";
 
 import type { Logger } from "./logger.ts";

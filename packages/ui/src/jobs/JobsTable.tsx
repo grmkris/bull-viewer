@@ -1,6 +1,6 @@
 "use client";
 
-import type { JobSnapshot, JobState } from "@bull-viewer/core";
+import type { JobSnapshot, JobState } from "@grmkris/bull-viewer-core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";

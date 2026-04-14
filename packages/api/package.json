@@ -1,5 +1,5 @@
 {
-  "name": "@bull-viewer/api",
+  "name": "@grmkris/bull-viewer-api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,7 @@
     "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
-    "@bull-viewer/core": "workspace:*",
+    "@grmkris/bull-viewer-core": "workspace:*",
     "@orpc/openapi": "^1.13.4",
     "@orpc/server": "^1.13.4",
     "@orpc/zod": "^1.13.4",

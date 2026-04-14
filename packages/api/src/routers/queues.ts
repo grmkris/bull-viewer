@@ -1,11 +1,11 @@
-import type { JobState, QueueSnapshot } from "@bull-viewer/core";
+import type { JobState, QueueSnapshot } from "@grmkris/bull-viewer-core";
 import {
   bulkAction,
   type BulkActionResult,
   getQueueSnapshot,
   pauseQueue,
   resumeQueue,
-} from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-core/server";
 import { z } from "zod";
 
 import {

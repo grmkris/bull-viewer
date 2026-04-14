@@ -1,4 +1,4 @@
-import type { Scope } from "@bull-viewer/core";
+import type { Scope } from "@grmkris/bull-viewer-core";
 import { ORPCError, os } from "@orpc/server";
 import type { Queue } from "bullmq";
 

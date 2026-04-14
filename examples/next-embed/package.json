@@ -12,8 +12,8 @@
     "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
-    "@bull-viewer/next": "workspace:*",
-    "@bull-viewer/ui": "workspace:*",
+    "@grmkris/bull-viewer-next": "workspace:*",
+    "@grmkris/bull-viewer-ui": "workspace:*",
     "ioredis": "^5.4.1",
     "next": "^15.1.0",
     "react": "^19.2.4",

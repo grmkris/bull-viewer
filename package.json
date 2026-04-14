@@ -14,8 +14,8 @@
     "fix": "ultracite fix --type-aware --type-check",
     "fix:unsafe": "ultracite fix --unsafe --type-aware --type-check",
     "format:tailwind": "prettier --write 'packages/ui/src/**/*.{ts,tsx}'",
-    "build": "bun --filter '@bull-viewer/*' build",
-    "dev:standalone": "bun --filter @bull-viewer/standalone dev",
+    "build": "bun --filter '@grmkris/bull-viewer-*' build",
+    "dev:standalone": "bun --filter @grmkris/bull-viewer-standalone dev",
     "dev:next-embed": "bun --filter example-next-embed dev",
     "seed": "bun --filter example-seed-bullmq seed"
   },

@@ -1,6 +1,6 @@
 "use client";
 
-import type { QueueSnapshot } from "@bull-viewer/core";
+import type { QueueSnapshot } from "@grmkris/bull-viewer-core";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { SearchIcon, StarIcon } from "lucide-react";

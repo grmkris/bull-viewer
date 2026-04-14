@@ -1,5 +1,5 @@
-import type { Authorize } from "@bull-viewer/api";
-import { ALL_SCOPES } from "@bull-viewer/core";
+import type { Authorize } from "@grmkris/bull-viewer-api";
+import { ALL_SCOPES } from "@grmkris/bull-viewer-core";
 
 export type AuthMode = "none" | "basic" | "bearer";
 

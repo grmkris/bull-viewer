@@ -1,4 +1,4 @@
-import type { AppRouterClient } from "@bull-viewer/api";
+import type { AppRouterClient } from "@grmkris/bull-viewer-api";
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { BatchLinkPlugin } from "@orpc/client/plugins";

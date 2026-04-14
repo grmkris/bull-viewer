@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 /**
  * Bundle size guard. Reads dist/lib/*.js, gzips each, fails if any exceeds
- * its budget. Run via `bun --filter @bull-viewer/ui bundle-guard` after a
+ * its budget. Run via `bun --filter @grmkris/bull-viewer-ui bundle-guard` after a
  * build.
  *
  * Budgets per the M6 plan:

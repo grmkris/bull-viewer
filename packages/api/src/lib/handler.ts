@@ -1,4 +1,4 @@
-import { subscribeQueueEvents } from "@bull-viewer/core/server";
+import { subscribeQueueEvents } from "@grmkris/bull-viewer-core/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";

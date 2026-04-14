@@ -1,4 +1,4 @@
-import type { Scope, Viewer } from "@bull-viewer/core";
+import type { Scope, Viewer } from "@grmkris/bull-viewer-core";
 import { createContext, useContext } from "react";
 
 import type { ApiClient } from "./api-client.ts";

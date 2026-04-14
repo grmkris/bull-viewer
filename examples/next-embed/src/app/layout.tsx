@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Next Embed Demo",
-  description: "host app embedding @bull-viewer/next",
+  description: "host app embedding @grmkris/bull-viewer-next",
 };
 
 export default function RootLayout({

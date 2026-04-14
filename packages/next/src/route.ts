@@ -3,8 +3,8 @@ import {
   createQueuesApiHandler,
   type Authorize,
   type TenantConfig,
-} from "@bull-viewer/api";
-import { createRegistry } from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-api";
+import { createRegistry } from "@grmkris/bull-viewer-core/server";
 import type { ConnectionOptions } from "bullmq";
 
 export const runtime = "nodejs";

@@ -1,7 +1,7 @@
 import {
   RedisScanSearchProvider,
   type SearchResult,
-} from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-core/server";
 import { z } from "zod";
 
 import { queueProcedure } from "../lib/orpc.ts";

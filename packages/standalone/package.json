@@ -1,5 +1,5 @@
 {
-  "name": "@bull-viewer/standalone",
+  "name": "@grmkris/bull-viewer-standalone",
   "version": "0.0.0",
   "private": true,
   "bin": {
@@ -15,9 +15,9 @@
     "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
-    "@bull-viewer/api": "workspace:*",
-    "@bull-viewer/core": "workspace:*",
-    "@bull-viewer/ui": "workspace:*",
+    "@grmkris/bull-viewer-api": "workspace:*",
+    "@grmkris/bull-viewer-core": "workspace:*",
+    "@grmkris/bull-viewer-ui": "workspace:*",
     "@hono/node-server": "^1.13.7",
     "hono": "^4.6.14",
     "ioredis": "^5.4.1"

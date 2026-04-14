@@ -1,4 +1,4 @@
-import { QueuesPage } from "@bull-viewer/next";
+import { QueuesPage } from "@grmkris/bull-viewer-next";
 
 import { auth } from "@/lib/auth";
 

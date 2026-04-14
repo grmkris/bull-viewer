@@ -5,8 +5,8 @@ import type {
   QueueSnapshot,
   Scope,
   Viewer,
-} from "@bull-viewer/core";
-// Type-only imports from @bull-viewer/core/server are **erased at build
+} from "@grmkris/bull-viewer-core";
+// Type-only imports from @grmkris/bull-viewer-core/server are **erased at build
 // time** and add zero runtime cost — no ioredis / bullmq code is pulled
 // into the browser bundle. Gives us a single source of truth for the
 // shapes the UI consumes via the typed oRPC client.
@@ -15,7 +15,7 @@ import type {
   FlowGraph,
   FlowNode,
   FlowEdge,
-} from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-core/server";
 
 import {
   createOrpcClient,

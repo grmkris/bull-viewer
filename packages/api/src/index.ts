@@ -27,10 +27,10 @@ export type {
   SearchProvider,
   SearchInput,
   SearchResult,
-} from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-core/server";
 
 // Router type is the canonical typed contract for client construction.
 // Consumers build a typed client via:
-//   import type { AppRouter } from "@bull-viewer/api"
+//   import type { AppRouter } from "@grmkris/bull-viewer-api"
 //   import { createORPCClient } from "@orpc/client"
 //   const client: RouterClient<AppRouter> = createORPCClient(link)

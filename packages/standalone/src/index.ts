@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
-import { createQueuesApiHandler, type TenantConfig } from "@bull-viewer/api";
+import { createQueuesApiHandler, type TenantConfig } from "@grmkris/bull-viewer-api";
 import {
   createMetricsCollector,
   createRegistry,
   type MetricsCollector,
   type QueueRegistry,
-} from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-core/server";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";

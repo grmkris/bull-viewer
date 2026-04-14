@@ -1,5 +1,5 @@
 {
-  "name": "@bull-viewer/next",
+  "name": "@grmkris/bull-viewer-next",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,9 +13,9 @@
     "fix:unsafe": "ultracite fix --unsafe"
   },
   "dependencies": {
-    "@bull-viewer/api": "workspace:*",
-    "@bull-viewer/core": "workspace:*",
-    "@bull-viewer/ui": "workspace:*",
+    "@grmkris/bull-viewer-api": "workspace:*",
+    "@grmkris/bull-viewer-core": "workspace:*",
+    "@grmkris/bull-viewer-ui": "workspace:*",
     "bullmq": "^5.73.4",
     "server-only": "^0.0.1"
   },

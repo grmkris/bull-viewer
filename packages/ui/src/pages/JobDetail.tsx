@@ -1,4 +1,4 @@
-import type { JobSnapshot } from "@bull-viewer/core";
+import type { JobSnapshot } from "@grmkris/bull-viewer-core";
 import { Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 

@@ -1,5 +1,5 @@
-import { BullViewerApp } from "@bull-viewer/ui";
-import type { BullViewerAppProps } from "@bull-viewer/ui";
+import { BullViewerApp } from "@grmkris/bull-viewer-ui";
+import type { BullViewerAppProps } from "@grmkris/bull-viewer-ui";
 
 /**
  * Server component wrapper that forwards props into `<BullViewerApp>`

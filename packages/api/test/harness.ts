@@ -21,8 +21,8 @@
  *   const result = await call(queuesRouter.list, {}, { context: ctx })
  *   expect(result.queues[0].counts.waiting).toBe(3)
  */
-import type { JobCounts, Scope, Viewer } from "@bull-viewer/core";
-import type { QueueRegistry } from "@bull-viewer/core/server";
+import type { JobCounts, Scope, Viewer } from "@grmkris/bull-viewer-core";
+import type { QueueRegistry } from "@grmkris/bull-viewer-core/server";
 import type { Queue } from "bullmq";
 
 import type { ViewerContext } from "../src/lib/context.ts";

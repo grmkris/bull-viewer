@@ -1,4 +1,4 @@
-import type { QueueRegistry, SearchProvider } from "@bull-viewer/core/server";
+import type { QueueRegistry, SearchProvider } from "@grmkris/bull-viewer-core/server";
 
 /**
  * One tenant = one Redis target + a set of queue names exposed by it.

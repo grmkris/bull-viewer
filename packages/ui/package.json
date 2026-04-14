@@ -1,5 +1,5 @@
 {
-  "name": "@bull-viewer/ui",
+  "name": "@grmkris/bull-viewer-ui",
   "version": "0.0.0",
   "private": true,
   "files": [
@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",
-    "@bull-viewer/api": "workspace:*",
-    "@bull-viewer/core": "workspace:*",
+    "@grmkris/bull-viewer-api": "workspace:*",
+    "@grmkris/bull-viewer-core": "workspace:*",
     "@codemirror/commands": "^6.10.3",
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/language": "^6.12.3",

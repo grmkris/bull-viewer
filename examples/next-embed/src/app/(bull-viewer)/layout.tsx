@@ -1,4 +1,4 @@
-import { QueuesLayout } from "@bull-viewer/next";
+import { QueuesLayout } from "@grmkris/bull-viewer-next";
 
 export default function BullViewerLayout({
   children,

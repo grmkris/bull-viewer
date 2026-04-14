@@ -1,6 +1,6 @@
 "use client";
 
-import type { QueueSnapshot } from "@bull-viewer/core";
+import type { QueueSnapshot } from "@grmkris/bull-viewer-core";
 import { useQuery, useQueries } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 

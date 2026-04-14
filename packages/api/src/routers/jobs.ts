@@ -1,4 +1,4 @@
-import type { JobListPage, JobSnapshot, JobState } from "@bull-viewer/core";
+import type { JobListPage, JobSnapshot, JobState } from "@grmkris/bull-viewer-core";
 import {
   findFlowRoot,
   type FlowGraph,
@@ -8,7 +8,7 @@ import {
   promoteJob,
   removeJob,
   retryJob,
-} from "@bull-viewer/core/server";
+} from "@grmkris/bull-viewer-core/server";
 import { z } from "zod";
 
 import { queueProcedure, writableQueueProcedure } from "../lib/orpc.ts";

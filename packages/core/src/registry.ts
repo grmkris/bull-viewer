@@ -21,7 +21,7 @@ export interface QueueRegistry {
 // reuse the same Queue/ioredis connections instead of instantiating fresh
 // ones on every request.
 //
-// Key is versioned so two major versions of @bull-viewer/core loaded into
+// Key is versioned so two major versions of @grmkris/bull-viewer-core loaded into
 // the same process (e.g. monorepo dedupe failure, compiled + source) don't
 // corrupt each other's caches.
 const GLOBAL_KEY = "__bullViewerRegistries_v1__";

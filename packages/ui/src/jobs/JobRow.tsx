@@ -1,4 +1,4 @@
-import type { JobSnapshot } from "@bull-viewer/core";
+import type { JobSnapshot } from "@grmkris/bull-viewer-core";
 import { formatDistanceToNowStrict } from "date-fns";
 import { memo } from "react";
 

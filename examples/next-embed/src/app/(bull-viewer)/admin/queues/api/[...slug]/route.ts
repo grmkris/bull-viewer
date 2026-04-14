@@ -1,4 +1,4 @@
-import { createQueuesRouteHandlers } from "@bull-viewer/next";
+import { createQueuesRouteHandlers } from "@grmkris/bull-viewer-next";
 
 import { auth } from "@/lib/auth";
 import { redis } from "@/lib/redis";
