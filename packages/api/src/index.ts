@@ -5,7 +5,11 @@ export type {
 } from "./lib/context.ts";
 export { ALLOW_ALL } from "./lib/context.ts";
 
-export type { CreateQueuesApiHandlerOptions, Handler } from "./lib/handler.ts";
+export type {
+  CreateQueuesApiHandlerOptions,
+  Handler,
+  McpRequestHandler,
+} from "./lib/handler.ts";
 export { createQueuesApiHandler } from "./lib/handler.ts";
 
 export type {

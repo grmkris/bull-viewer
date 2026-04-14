@@ -1,17 +1,31 @@
 {
-  "name": "@grmkris/bull-viewer-api",
+  "name": "@grmkris/bull-viewer-mcp",
   "version": "0.1.0",
-  "description": "oRPC routers, scope middleware, and typed errors for bull-viewer",
+  "description": "MCP server for bull-viewer. Turns the oRPC router into MCP tools for AI agents (Claude Desktop, Claude Code CLI, Cursor).",
+  "keywords": [
+    "ai-agent",
+    "bullmq",
+    "claude",
+    "mcp",
+    "model-context-protocol",
+    "orpc",
+    "queue",
+    "redis"
+  ],
   "homepage": "https://github.com/grmkris/bull-viewer",
   "license": "MIT",
   "author": "Kristjan Grm",
   "repository": {
     "type": "git",
     "url": "https://github.com/grmkris/bull-viewer.git",
-    "directory": "packages/api"
+    "directory": "packages/mcp"
+  },
+  "bin": {
+    "bull-viewer-mcp": "./dist/bin.mjs"
   },
   "files": [
     "src",
+    "dist",
     "package.json",
     "README.md"
   ],
@@ -31,20 +45,25 @@
     "test:watch": "bun test --watch",
     "lint": "ultracite check",
     "fix": "ultracite fix",
-    "fix:unsafe": "ultracite fix --unsafe"
+    "fix:unsafe": "ultracite fix --unsafe",
+    "build": "tsdown",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "@grmkris/bull-viewer-core": "workspace:*",
-    "@orpc/openapi": "^1.13.4",
+    "@grmkris/bull-viewer-api": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@orpc/client": "^1.13.4",
     "@orpc/server": "^1.13.4",
     "@orpc/zod": "^1.13.4",
     "bullmq": "^5.73.4",
+    "ioredis": "^5.4.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@grmkris/bull-viewer-mcp": "workspace:*",
     "@grmkris/bull-viewer-test-utils": "workspace:*",
     "@types/bun": "^1.3.12",
-    "typescript": "^5.9.3"
+    "tsdown": "^0.15.9",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
   }
 }

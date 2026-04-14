@@ -9,6 +9,7 @@ import {
   type MetricsCollector,
   type QueueRegistry,
 } from "@grmkris/bull-viewer-core/server";
+import { createBullViewerMcpHandler } from "@grmkris/bull-viewer-mcp";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { serveStatic } from "hono/bun";
@@ -143,6 +144,7 @@ const apiHandler = createQueuesApiHandler({
   defaultTenant,
   authorize,
   basePath: "/api",
+  mcpHandler: createBullViewerMcpHandler(),
 });
 
 const app = new Hono();

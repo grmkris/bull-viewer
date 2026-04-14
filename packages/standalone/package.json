@@ -35,6 +35,7 @@
   "dependencies": {
     "@grmkris/bull-viewer-api": "workspace:*",
     "@grmkris/bull-viewer-core": "workspace:*",
+    "@grmkris/bull-viewer-mcp": "workspace:*",
     "@grmkris/bull-viewer-ui": "workspace:*",
     "@hono/node-server": "^1.13.7",
     "hono": "^4.6.14",

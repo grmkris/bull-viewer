@@ -9,6 +9,7 @@
     [
       "@grmkris/bull-viewer-core",
       "@grmkris/bull-viewer-api",
+      "@grmkris/bull-viewer-mcp",
       "@grmkris/bull-viewer-ui",
       "@grmkris/bull-viewer-next",
       "@grmkris/bull-viewer-standalone"

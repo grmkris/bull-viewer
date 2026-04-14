@@ -15,10 +15,31 @@ import { buildContext, type Authorize, type ViewerContext } from "./context.ts";
 import { createConsoleLogger, type Logger } from "./logger.ts";
 import { normalizeTenantOptions, type TenantOptionsInput } from "./tenants.ts";
 
+/**
+ * Handler for MCP Streamable HTTP requests at `${basePath}/tenants/:id/mcp`
+ * (and the legacy `${basePath}/mcp`). Structural type — the actual factory
+ * lives in `@grmkris/bull-viewer-mcp` so host apps compose the two without
+ * a circular workspace dependency.
+ */
+export type McpRequestHandler = (
+  req: Request,
+  context: ViewerContext
+) => Promise<Response>;
+
 export interface CreateQueuesApiHandlerOptions extends TenantOptionsInput {
   authorize?: Authorize;
   basePath?: string;
   readOnly?: boolean;
+  /**
+   * Optional MCP handler. When provided, the API dispatcher routes requests
+   * at `${basePath}/tenants/:id/mcp` (and the legacy `${basePath}/mcp`)
+   * through it, reusing the already-resolved `ViewerContext` so the full
+   * middleware chain (auth + scope + readOnly) still gates every tool call.
+   *
+   * Host apps typically wire this with
+   * `createBullViewerMcpHandler()` from `@grmkris/bull-viewer-mcp`.
+   */
+  mcpHandler?: McpRequestHandler;
   /**
    * Expose auto-generated OpenAPI docs + REST surface at
    * `${basePath}/tenants/:tenant/rest/*` (and the legacy `${basePath}/rest/*`
@@ -269,6 +290,22 @@ export function createQueuesApiHandler(
         tenant: tenantId,
       });
       return sseResponse(req, queueName, context.registry.connection, tenantId);
+    }
+
+    // 3.5) MCP Streamable HTTP transport — stateless, per-request. Reuses
+    //      the ViewerContext the handler already built, so tenant isolation,
+    //      `authorize`, and scope checks all run before the first tool call.
+    if (
+      options.mcpHandler &&
+      (scopedPathname === "/mcp" || scopedPathname === "/mcp/")
+    ) {
+      if (!context.scopes.has("read")) {
+        return finish(
+          jsonResponse({ error: "requires scope: read" }, 403),
+          "mcp"
+        );
+      }
+      return finish(await options.mcpHandler(req, context), "mcp");
     }
 
     // 4) oRPC typed RPC surface

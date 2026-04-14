@@ -59,6 +59,32 @@ docker run --rm -p 3000:3000 \
 A worked-out compose example lives in
 [`examples/standalone-docker/`](examples/standalone-docker/).
 
+## AI agents (MCP)
+
+Every oRPC procedure is exposed as an MCP tool when you run the standalone
+server. Add it to Claude Code CLI in one command:
+
+```sh
+claude mcp add bull-viewer --transport http \
+  --url http://localhost:4747/api/tenants/default/mcp
+```
+
+For Claude Desktop / agent SDKs that spawn subprocesses, use the stdio bin:
+
+```json
+{
+  "mcpServers": {
+    "bull-viewer": {
+      "command": "npx",
+      "args": ["-y", "@grmkris/bull-viewer-mcp"],
+      "env": { "BULL_VIEWER_URL": "http://localhost:4747/api" }
+    }
+  }
+}
+```
+
+See [`packages/mcp/README.md`](packages/mcp/README.md) for the full guide.
+
 ## Quick start — Next.js embed
 
 Install:
@@ -133,15 +159,16 @@ omit `scopes`, the viewer is treated as **read-only** by default.
 └─────────────────┘    └─────────────────┘
 ```
 
-Five workspace packages:
+Six workspace packages:
 
-| package                           | role                                         |
-| --------------------------------- | -------------------------------------------- |
-| `@grmkris/bull-viewer-core`       | BullMQ adapter, registry, snapshot helpers   |
-| `@grmkris/bull-viewer-api`        | oRPC routers, scope middleware, typed errors |
-| `@grmkris/bull-viewer-ui`         | React app, embed entry, library bundle       |
-| `@grmkris/bull-viewer-standalone` | Hono server (Docker target)                  |
-| `@grmkris/bull-viewer-next`       | Next.js page + route helpers                 |
+| package                           | role                                               |
+| --------------------------------- | -------------------------------------------------- |
+| `@grmkris/bull-viewer-core`       | BullMQ adapter, registry, snapshot helpers         |
+| `@grmkris/bull-viewer-api`        | oRPC routers, scope middleware, typed errors       |
+| `@grmkris/bull-viewer-mcp`        | MCP server — every oRPC procedure as an agent tool |
+| `@grmkris/bull-viewer-ui`         | React app, embed entry, library bundle             |
+| `@grmkris/bull-viewer-standalone` | Hono server (Docker target)                        |
+| `@grmkris/bull-viewer-next`       | Next.js page + route helpers                       |
 
 ## Roadmap
 
