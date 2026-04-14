@@ -1,20 +1,18 @@
 import type { JobState, QueueSnapshot } from "@bull-viewer/core";
 import {
+  bulkAction,
+  type BulkActionResult,
   getQueueSnapshot,
   pauseQueue,
   resumeQueue,
-  bulkAction,
-  type BulkActionResult,
 } from "@bull-viewer/core/server";
-import { ORPCError } from "@orpc/server";
-import type { Queue } from "bullmq";
 import { z } from "zod";
 
-import type { ViewerContext } from "../lib/context.ts";
 import {
+  queueProcedure,
   readProcedure,
-  scopedMutation,
-  writableProcedure,
+  scopedQueueMutation,
+  writableQueueProcedure,
 } from "../lib/orpc.ts";
 
 export const jobStateSchema = z.enum([
@@ -27,14 +25,6 @@ export const jobStateSchema = z.enum([
   "waiting-children",
   "prioritized",
 ] as const);
-
-export function getQueueOr404(ctx: ViewerContext, name: string): Queue {
-  const q = ctx.registry.getQueue(name);
-  if (!q) {
-    throw new ORPCError("NOT_FOUND", { message: `queue not found: ${name}` });
-  }
-  return q;
-}
 
 /**
  * Empty snapshot placeholder returned when a per-queue Redis call fails in
@@ -79,17 +69,17 @@ export const queuesRouter = {
     }
   ),
 
-  get: readProcedure
+  get: queueProcedure
     .input(z.object({ name: z.string() }))
-    .handler(async ({ context, input }): Promise<{ queue: QueueSnapshot }> => {
-      const queue = getQueueOr404(context, input.name);
+    .handler(async ({ context }): Promise<{ queue: QueueSnapshot }> => {
+      const queue = context.queue!;
       return { queue: await getQueueSnapshot(queue) };
     }),
 
-  pause: scopedMutation("pause")
+  pause: scopedQueueMutation("pause")
     .input(z.object({ name: z.string() }))
-    .handler(async ({ context, input }) => {
-      const queue = getQueueOr404(context, input.name);
+    .handler(async ({ context }) => {
+      const queue = context.queue!;
       return await pauseQueue(queue);
     }),
 
@@ -98,10 +88,10 @@ export const queuesRouter = {
   // ever want to grant "can pause but can't resume" (or vice versa),
   // introduce a dedicated `resume` scope and update both `Scope` in
   // core/types.ts and this procedure at the same time.
-  resume: scopedMutation("pause")
+  resume: scopedQueueMutation("pause")
     .input(z.object({ name: z.string() }))
-    .handler(async ({ context, input }) => {
-      const queue = getQueueOr404(context, input.name);
+    .handler(async ({ context }) => {
+      const queue = context.queue!;
       return await resumeQueue(queue);
     }),
 
@@ -110,7 +100,7 @@ export const queuesRouter = {
    * Scope is checked dynamically against the action because each action
    * maps to its own scope in the Scope union.
    */
-  bulk: writableProcedure
+  bulk: writableQueueProcedure
     .input(
       z.object({
         name: z.string(),
@@ -125,13 +115,11 @@ export const queuesRouter = {
         cap: z.number().int().positive().optional(),
       })
     )
-    .handler(async ({ context, input }): Promise<BulkActionResult> => {
+    .handler(async ({ context, input, errors }): Promise<BulkActionResult> => {
       if (!context.scopes.has(input.action)) {
-        throw new ORPCError("FORBIDDEN", {
-          message: `requires scope: ${input.action}`,
-        });
+        throw errors.Forbidden({ message: `requires scope: ${input.action}` });
       }
-      const queue = getQueueOr404(context, input.name);
+      const queue = context.queue!;
       return await bulkAction(queue, {
         action: input.action,
         ids: input.ids,

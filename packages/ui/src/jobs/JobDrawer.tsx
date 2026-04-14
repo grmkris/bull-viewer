@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
@@ -58,20 +58,30 @@ export function JobDrawer({ queueName, jobId, onClose }: JobDrawerProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  async function runAction(action: "retry" | "remove" | "promote") {
-    if (!jobId) return;
-    try {
-      await api.jobAction(queueName, jobId, action);
+  // Mutations go through useMutation so errors hit the global
+  // MutationCache.onError handler in embed.tsx (one place for all
+  // error toasts). Success toasts stay local so we can include the
+  // action verb + job id.
+  const actionMutation = useMutation({
+    mutationFn: (action: "retry" | "remove" | "promote") => {
+      if (!jobId) return Promise.reject(new Error("no job selected"));
+      return api.jobAction(queueName, jobId, action);
+    },
+    onSuccess: (_result, action) => {
       toast.success(`${action} ${jobId} ok`);
       if (action === "remove") onClose();
       void queryClient.invalidateQueries({
         queryKey: ["queues", queueName, "jobs"],
       });
       void queryClient.invalidateQueries({ queryKey: ["queues"] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : String(err));
-    }
-  }
+    },
+    // onError: intentionally omitted — global MutationCache.onError
+    // in embed.tsx handles the sonner toast mapping.
+  });
+
+  const runAction = (action: "retry" | "remove" | "promote") => {
+    actionMutation.mutate(action);
+  };
 
   const copyId = () => {
     if (!jobId) return;

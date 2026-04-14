@@ -1,8 +1,4 @@
-import {
-  subscribeQueueEvents,
-  type QueueRegistry,
-  type SearchProvider,
-} from "@bull-viewer/core/server";
+import { subscribeQueueEvents } from "@bull-viewer/core/server";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { RPCHandler } from "@orpc/server/fetch";
@@ -16,28 +12,29 @@ import type { ConnectionOptions } from "bullmq";
 
 import { appRouter } from "../router.ts";
 import { buildContext, type Authorize, type ViewerContext } from "./context.ts";
+import { createConsoleLogger, type Logger } from "./logger.ts";
+import { normalizeTenantOptions, type TenantOptionsInput } from "./tenants.ts";
 
-export interface CreateQueuesApiHandlerOptions {
-  registry: QueueRegistry;
+export interface CreateQueuesApiHandlerOptions extends TenantOptionsInput {
   authorize?: Authorize;
   basePath?: string;
   readOnly?: boolean;
   /**
-   * Pluggable search backend. Defaults to the built-in Redis SCAN provider.
-   * Host apps can inject a Postgres / Meilisearch / Elastic adapter here;
-   * it flows through `ViewerContext.searchProvider` and is read by the
-   * `search.jobs` procedure. Replaces the old module-level `setSearchProvider`
-   * which had a dual-package hazard.
-   */
-  searchProvider?: SearchProvider;
-  /**
-   * Expose auto-generated OpenAPI docs + REST surface at `${basePath}/rest/*`.
+   * Expose auto-generated OpenAPI docs + REST surface at
+   * `${basePath}/tenants/:tenant/rest/*` (and the legacy `${basePath}/rest/*`
+   * shortcut for the default tenant).
    *
    * Default: **on in dev/test, off in production**. Set `true` to force-enable
    * (useful for self-hosted dashboards that want API docs) or `false` to
    * force-disable.
    */
   openapi?: boolean;
+  /**
+   * Root logger. Every request gets a child with `requestId`, `procedure`,
+   * and `tenant` fields merged. Defaults to a console-backed logger
+   * honoring `BULL_VIEWER_LOG_LEVEL` (debug | info | warn | error, default info).
+   */
+  logger?: Logger;
 }
 
 export type Handler = (req: Request) => Promise<Response>;
@@ -79,19 +76,42 @@ function shouldEnableOpenApi(flag: boolean | undefined): boolean {
 }
 
 /**
- * Single mounted handler that dispatches to:
- *   - `${basePath}/rpc/*`    → oRPC RPCHandler (typed RPC)
- *   - `${basePath}/rest/*`   → oRPC OpenAPIHandler (REST + Scalar docs, off in prod)
- *   - `${basePath}/queues/:name/events` → Server-Sent Events stream
+ * Match `/tenants/:id` or `/tenants/:id/<rest...>` and extract both halves.
+ * Returns `null` when the pathname doesn't start with the tenant prefix —
+ * the caller falls back to the default tenant in that case.
+ */
+function matchTenantPrefix(
+  pathname: string
+): { tenantId: string; remaining: string } | null {
+  const m = pathname.match(/^\/tenants\/([^/]+)(\/.*)?$/);
+  if (!m) return null;
+  return {
+    tenantId: decodeURIComponent(m[1]!),
+    remaining: m[2] && m[2] !== "" ? m[2] : "/",
+  };
+}
+
+/**
+ * Single mounted handler. Dispatches every incoming request through one of:
  *
- * The SSE path is intentionally kept outside the RPC layer so existing
- * `EventSource` consumers continue to work without touching async
- * iterator plumbing. Everything else flows through a single typed router.
+ *   - `${basePath}/tenants`                                 → meta endpoint (tenant list)
+ *   - `${basePath}/tenants/:tenant/rpc/*`                   → oRPC RPCHandler
+ *   - `${basePath}/tenants/:tenant/rest/*`                  → OpenAPI + Scalar docs
+ *   - `${basePath}/tenants/:tenant/queues/:name/events`     → SSE stream (scoped per tenant)
+ *   - `${basePath}/rpc/*`                                   → legacy single-tenant alias for the default tenant
+ *   - `${basePath}/rest/*`                                  → legacy single-tenant alias
+ *   - `${basePath}/queues/:name/events`                     → legacy single-tenant SSE
+ *
+ * The RPC and OpenAPI handlers are constructed **once** at factory time and
+ * reused across all tenants — the per-call `prefix` option lets one handler
+ * serve any tenant URL without rebuilding the router.
  */
 export function createQueuesApiHandler(
   options: CreateQueuesApiHandlerOptions
 ): Handler {
   const basePath = normalizeBasePath(options.basePath);
+  const rootLogger = options.logger ?? createConsoleLogger();
+  const { tenants, defaultTenantId } = normalizeTenantOptions(options);
 
   const rpcHandler = new RPCHandler(appRouter, {
     plugins: [
@@ -113,7 +133,7 @@ export function createQueuesApiHandler(
                 title: "BullMQ Viewer API",
                 version: "1.0.0",
                 description:
-                  "REST mirror of the oRPC router. Use `/rpc/*` for typed RPC, `/rest/*` for OpenAPI-compatible access, or open this page in a browser for interactive Scalar docs.",
+                  "REST mirror of the oRPC router. Each tenant gets its own surface at `/tenants/:tenant/rest/*`. The legacy `/rest/*` path resolves to the default tenant.",
               },
             },
           }),
@@ -122,6 +142,7 @@ export function createQueuesApiHandler(
     : null;
 
   return async (req: Request): Promise<Response> => {
+    const startedAt = Date.now();
     const url = new URL(req.url);
     let pathname = url.pathname;
     if (basePath && pathname.startsWith(basePath)) {
@@ -129,56 +150,189 @@ export function createQueuesApiHandler(
     }
     if (!pathname.startsWith("/")) pathname = `/${pathname}`;
 
-    // Resolve viewer + scopes. Short-circuits with 401/403 on auth failure.
+    // 0) Tenant list meta endpoint — special-case before any tenant
+    //    resolution. Still runs `authorize` so the list isn't world-readable.
+    if (
+      (pathname === "/tenants" || pathname === "/tenants/") &&
+      req.method === "GET"
+    ) {
+      if (options.authorize) {
+        const result = await options.authorize(req);
+        if (!result.ok) {
+          return jsonResponse(
+            { error: result.message ?? "unauthorized" },
+            result.status ?? 401
+          );
+        }
+      }
+      const list = [...tenants.entries()].map(([id, t]) => ({
+        id,
+        label: t.label ?? id,
+        queueCount: t.registry.listQueueNames().length,
+      }));
+      rootLogger.info("tenants.list ✓ meta", {
+        count: list.length,
+        durationMs: Date.now() - startedAt,
+      });
+      return jsonResponse({ tenants: list, default: defaultTenantId });
+    }
+
+    // 1) Resolve tenant: prefer explicit `/tenants/:id/...` prefix, else
+    //    fall back to the default tenant for legacy paths.
+    let tenantId: string;
+    let scopedPathname: string;
+    let usingTenantPrefix: boolean;
+    const tenantMatch = matchTenantPrefix(pathname);
+    if (tenantMatch) {
+      tenantId = tenantMatch.tenantId;
+      scopedPathname = tenantMatch.remaining;
+      usingTenantPrefix = true;
+    } else {
+      tenantId = defaultTenantId;
+      scopedPathname = pathname;
+      usingTenantPrefix = false;
+    }
+
+    const tenant = tenants.get(tenantId);
+    if (!tenant) {
+      const known = [...tenants.keys()].join(", ");
+      rootLogger.warn(`tenants.unknown ✗`, {
+        tenant: tenantId,
+        known,
+        durationMs: Date.now() - startedAt,
+      });
+      return jsonResponse(
+        { error: `unknown tenant: ${tenantId}`, known: [...tenants.keys()] },
+        404
+      );
+    }
+
+    const procedure = derivePath(scopedPathname, tenantId);
+
+    // 2) Resolve viewer + scopes against the picked tenant. Short-circuits
+    //    with 401/403 on auth failure.
     const ctxOrResponse = await buildContext(req, {
-      registry: options.registry,
+      registry: tenant.registry,
       authorize: options.authorize,
       readOnly: options.readOnly,
-      searchProvider: options.searchProvider,
+      searchProvider: tenant.searchProvider ?? options.searchProvider,
+      logger: rootLogger,
+      procedure,
+      tenantId,
     });
-    if (ctxOrResponse instanceof Response) return ctxOrResponse;
+    if (ctxOrResponse instanceof Response) {
+      rootLogger.warn(`${procedure} ✗ auth`, {
+        tenant: tenantId,
+        status: ctxOrResponse.status,
+        durationMs: Date.now() - startedAt,
+      });
+      return ctxOrResponse;
+    }
     const context: ViewerContext = ctxOrResponse;
 
-    // 1) Raw SSE stream (kept outside oRPC for EventSource compatibility)
-    const sseMatch = pathname.match(/^\/queues\/([^/]+)\/events\/?$/);
+    const finish = (response: Response, tag = "rpc") => {
+      const level =
+        response.status >= 500
+          ? "error"
+          : response.status >= 400
+            ? "warn"
+            : "info";
+      context.logger[level](
+        `${procedure} ${response.status < 400 ? "✓" : "✗"} ${tag}`,
+        {
+          status: response.status,
+          durationMs: Date.now() - startedAt,
+        }
+      );
+      return response;
+    };
+
+    // 3) Raw SSE stream — kept outside oRPC so EventSource keeps working.
+    //    Subscription is keyed by (tenantId, queueName) so two tenants with
+    //    a same-named queue don't alias inside the events multiplexer.
+    const sseMatch = scopedPathname.match(/^\/queues\/([^/]+)\/events\/?$/);
     if (sseMatch && req.method === "GET") {
       if (!context.scopes.has("read")) {
-        return jsonResponse({ error: "requires scope: read" }, 403);
+        return finish(
+          jsonResponse({ error: "requires scope: read" }, 403),
+          "sse"
+        );
       }
       const queueName = decodeURIComponent(sseMatch[1]!);
       const queue = context.registry.getQueue(queueName);
-      if (!queue) return jsonResponse({ error: "queue not found" }, 404);
-      return sseResponse(req, queueName, context.registry.connection);
+      if (!queue) {
+        return finish(jsonResponse({ error: "queue not found" }, 404), "sse");
+      }
+      // SSE streams are long-lived — log open, not close.
+      context.logger.info(`${procedure} ↻ sse open`, {
+        queue: queueName,
+        tenant: tenantId,
+      });
+      return sseResponse(req, queueName, context.registry.connection, tenantId);
     }
 
-    // 2) oRPC typed RPC surface
-    if (pathname.startsWith("/rpc")) {
-      const rpcPrefix = `${basePath}/rpc` as `/${string}`;
+    // 4) oRPC typed RPC surface
+    if (scopedPathname.startsWith("/rpc")) {
+      const rpcPrefix = (
+        usingTenantPrefix
+          ? `${basePath}/tenants/${tenantId}/rpc`
+          : `${basePath}/rpc`
+      ) as `/${string}`;
       const { matched, response } = await rpcHandler.handle(req, {
         prefix: rpcPrefix,
         context,
       });
-      if (matched) return response;
+      if (matched) return finish(response, "rpc");
     }
 
-    // 3) Auto-generated REST + Scalar docs (dev/opt-in only)
-    if (openapiHandler && pathname.startsWith("/rest")) {
-      const restPrefix = `${basePath}/rest` as `/${string}`;
+    // 5) Auto-generated REST + Scalar docs (dev/opt-in only)
+    if (openapiHandler && scopedPathname.startsWith("/rest")) {
+      const restPrefix = (
+        usingTenantPrefix
+          ? `${basePath}/tenants/${tenantId}/rest`
+          : `${basePath}/rest`
+      ) as `/${string}`;
       const { matched, response } = await openapiHandler.handle(req, {
         prefix: restPrefix,
         context,
       });
-      if (matched) return response;
+      if (matched) return finish(response, "rest");
     }
 
-    return jsonResponse({ error: "not found" }, 404);
+    return finish(jsonResponse({ error: "not found" }, 404), "miss");
   };
+}
+
+/**
+ * Turn a post-basePath, post-tenant URL pathname into a compact procedure
+ * identifier for log correlation.
+ *
+ *   `/rpc/jobs/action`                  → `jobs.action`
+ *   `/rest/queues/emails/jobs/12/retry` → `rest:queues.emails.jobs.12.retry`
+ *   `/queues/emails/events`             → `sse:queues.emails.events`
+ *
+ * The tenant id is logged separately on the request-scoped logger, so it
+ * isn't repeated in the procedure tag.
+ */
+function derivePath(pathname: string, _tenantId: string): string {
+  const trimmed = pathname.replace(/^\/+|\/+$/g, "");
+  if (trimmed.startsWith("rpc/")) {
+    return trimmed.slice(4).replace(/\//g, ".");
+  }
+  if (trimmed.startsWith("rest/")) {
+    return `rest:${trimmed.slice(5).replace(/\//g, ".")}`;
+  }
+  if (trimmed.startsWith("queues/") && trimmed.endsWith("/events")) {
+    return `sse:${trimmed.replace(/\//g, ".")}`;
+  }
+  return trimmed || "/";
 }
 
 function sseResponse(
   req: Request,
   queueName: string,
-  connection: ConnectionOptions
+  connection: ConnectionOptions,
+  scopeKey: string
 ): Response {
   let unsubscribe: (() => void) | undefined;
   let closed = false;
@@ -196,7 +350,10 @@ function sseResponse(
         }
       };
 
-      send(JSON.stringify({ type: "hello", queue: queueName }), "hello");
+      send(
+        JSON.stringify({ type: "hello", queue: queueName, tenant: scopeKey }),
+        "hello"
+      );
 
       const hb = setInterval(() => {
         if (closed) return;
@@ -207,9 +364,14 @@ function sseResponse(
         }
       }, 15_000);
 
-      unsubscribe = subscribeQueueEvents(queueName, connection, (event) => {
-        send(JSON.stringify(event), "job");
-      });
+      unsubscribe = subscribeQueueEvents(
+        queueName,
+        connection,
+        (event) => {
+          send(JSON.stringify(event), "job");
+        },
+        scopeKey
+      );
 
       req.signal?.addEventListener("abort", () => {
         closed = true;

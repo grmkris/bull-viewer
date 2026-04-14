@@ -32,9 +32,13 @@ function absolutize(apiBase: string): string {
 }
 
 /**
- * Build a typed oRPC client + TanStack Query utils bound to a given API base.
- * The `apiBase` should NOT include the `/rpc` suffix — it's appended here so
- * callers can pass the same value they'd use for SSE and other raw endpoints.
+ * Build a typed oRPC client + TanStack Query utils bound to a given API base
+ * **and a tenant id**. The `apiBase` should NOT include the `/rpc` suffix — it
+ * gets composed into `${apiBase}/tenants/${tenantId}/rpc` here.
+ *
+ * The function is called once on mount and again whenever the tenant changes;
+ * `BullViewerApp` recreates the bundle and clears the React-Query cache to
+ * prevent any stale data from one tenant leaking into another.
  *
  * Plugin strategy:
  *   - **No `DedupeRequestsPlugin`**: TanStack Query already dedupes concurrent
@@ -50,10 +54,13 @@ function absolutize(apiBase: string): string {
  *     round trip. Mirrors the server's `BatchHandlerPlugin`. Safe for both
  *     queries and mutations because batching only merges the transport.
  */
-export function createOrpcClient(apiBase: string): OrpcClientBundle {
+export function createOrpcClient(
+  apiBase: string,
+  tenantId: string
+): OrpcClientBundle {
   const base = absolutize(apiBase);
   const link = new RPCLink({
-    url: `${base}/rpc`,
+    url: `${base}/tenants/${encodeURIComponent(tenantId)}/rpc`,
     fetch: (input, init) =>
       globalThis.fetch(input, { ...init, credentials: "include" }),
     plugins: [

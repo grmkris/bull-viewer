@@ -103,9 +103,9 @@ export interface ApiClient {
   eventsUrl(name: string): string;
 }
 
-export function createApiClient(apiBase: string): ApiClient {
+export function createApiClient(apiBase: string, tenantId: string): ApiClient {
   const base = apiBase.endsWith("/") ? apiBase.slice(0, -1) : apiBase;
-  const { client, orpc } = createOrpcClient(base);
+  const { client, orpc } = createOrpcClient(base, tenantId);
 
   return {
     apiBase: base,
@@ -162,6 +162,7 @@ export function createApiClient(apiBase: string): ApiClient {
 
     getMetrics: (name, range) => client.metrics.get({ name, range }),
 
-    eventsUrl: (name) => `${base}/queues/${encodeURIComponent(name)}/events`,
+    eventsUrl: (name) =>
+      `${base}/tenants/${encodeURIComponent(tenantId)}/queues/${encodeURIComponent(name)}/events`,
   };
 }

@@ -20,6 +20,7 @@
     "routeTree.gen.ts",
     "packages/ui/dist",
     "packages/ui/src/components/ui",
+    "packages/api/test",
     "examples/next-embed/.next",
     "examples/next-embed/next-env.d.ts"
   ],

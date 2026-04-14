@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 import { useScrollDirection } from "../hooks/use-scroll-direction.ts";
 import { useTheme } from "../hooks/use-theme.ts";
+import { TenantSwitcher } from "./TenantSwitcher.tsx";
 
 export function AppHeader() {
   const { resolved, setTheme } = useTheme();
@@ -36,6 +37,10 @@ export function AppHeader() {
         >
           bull-viewer
         </Link>
+        <span className="text-muted-foreground/60 md:hidden">/</span>
+        <span className="md:hidden">
+          <TenantSwitcher variant="compact" />
+        </span>
         {params.name && (
           <>
             <ChevronRightIcon className="text-muted-foreground size-3 shrink-0" />

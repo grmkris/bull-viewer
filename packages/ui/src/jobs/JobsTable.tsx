@@ -1,7 +1,7 @@
 "use client";
 
 import type { JobSnapshot, JobState } from "@bull-viewer/core";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, useState } from "react";
 
@@ -245,23 +245,25 @@ interface BulkActionBarProps {
 function BulkActionBar({ selected, onClear, queueName }: BulkActionBarProps) {
   const { api, scopes } = useBullViewer();
   const queryClient = useQueryClient();
-  const [busy, setBusy] = useState(false);
 
-  if (selected.size === 0) return null;
-
-  async function run(action: "retry" | "remove" | "promote") {
-    setBusy(true);
-    try {
-      await api.bulkAction(queueName, { action, ids: [...selected] });
+  // useMutation hands errors off to the global MutationCache.onError in
+  // embed.tsx — one place for all action-failed toasts.
+  const bulkMutation = useMutation({
+    mutationFn: (action: "retry" | "remove" | "promote") =>
+      api.bulkAction(queueName, { action, ids: [...selected] }),
+    onSuccess: () => {
       onClear();
       void queryClient.invalidateQueries({
         queryKey: ["queues", queueName, "jobs"],
       });
       void queryClient.invalidateQueries({ queryKey: ["queues"] });
-    } finally {
-      setBusy(false);
-    }
-  }
+    },
+  });
+  const busy = bulkMutation.isPending;
+  const run = (action: "retry" | "remove" | "promote") =>
+    bulkMutation.mutate(action);
+
+  if (selected.size === 0) return null;
 
   return (
     <div className="bg-card pointer-events-auto fixed bottom-20 left-1/2 z-20 -translate-x-1/2 rounded-md border shadow-xl md:bottom-6">

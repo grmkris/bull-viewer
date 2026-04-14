@@ -2,25 +2,20 @@ import {
   RedisScanSearchProvider,
   type SearchResult,
 } from "@bull-viewer/core/server";
-import { ORPCError } from "@orpc/server";
 import { z } from "zod";
 
-import { readProcedure } from "../lib/orpc.ts";
+import { queueProcedure } from "../lib/orpc.ts";
 import { jobStateSchema } from "./queues.ts";
 
 /**
  * NOTE: The previous `setSearchProvider(provider)` module-level setter was
- * removed because it had a dual-package hazard — importing `@bull-viewer/api`
- * twice (e.g. compiled + source in the same process) would create two
- * independent `providerOverride` singletons and the wrong one would win.
- *
- * Hosts now inject a custom `SearchProvider` via `createQueuesApiHandler({
- * searchProvider })`. It flows through `ViewerContext.searchProvider` and
- * is read here per request. Default is `RedisScanSearchProvider`.
+ * removed because it had a dual-package hazard. Hosts now inject a custom
+ * `SearchProvider` via `createQueuesApiHandler({ searchProvider })`; it
+ * flows through `ViewerContext.searchProvider` and is read here per
+ * request. Default is `RedisScanSearchProvider`.
  */
-
 export const searchRouter = {
-  jobs: readProcedure
+  jobs: queueProcedure
     .input(
       z.object({
         name: z.string(),
@@ -30,12 +25,9 @@ export const searchRouter = {
       })
     )
     .handler(async ({ context, input }): Promise<SearchResult> => {
-      const queue = context.registry.getQueue(input.name);
-      if (!queue) {
-        throw new ORPCError("NOT_FOUND", {
-          message: `queue not found: ${input.name}`,
-        });
-      }
+      // queueProcedure resolves ctx.queue via requireQueueMw; the `!` is
+      // safe because the middleware throws QueueMissing otherwise.
+      const queue = context.queue!;
       const trimmed = input.query.trim();
       if (!trimmed) {
         return { jobs: [], truncated: false, scanned: 0, durationMs: 0 };

@@ -29,20 +29,34 @@ interface QueueEventsRef {
 
 const refs = new Map<string, QueueEventsRef>();
 
+const DEFAULT_SCOPE = "_default_";
+
+function refKey(queueName: string, scopeKey: string | undefined): string {
+  return `${scopeKey ?? DEFAULT_SCOPE}::${queueName}`;
+}
+
 /**
  * Subscribe to BullMQ QueueEvents for a queue. Returns an unsubscribe fn.
- * Multiple subscribers share a single QueueEvents instance per queue (refcounted).
+ * Multiple subscribers share a single QueueEvents instance per (scopeKey,
+ * queue) pair, ref-counted.
+ *
+ * `scopeKey` disambiguates queues with the same name across tenants — pass
+ * the tenant id when the same process serves multiple Redis targets that
+ * happen to share queue names. When omitted, all callers share one
+ * `_default_` scope (the historical single-tenant behavior).
  */
 export function subscribeQueueEvents(
   queueName: string,
   connection: ConnectionOptions,
-  listener: QueueEventListener
+  listener: QueueEventListener,
+  scopeKey?: string
 ): () => void {
-  let ref = refs.get(queueName);
+  const key = refKey(queueName, scopeKey);
+  let ref = refs.get(key);
   if (!ref) {
     const events = new QueueEvents(queueName, { connection });
     ref = { events, listeners: new Set(), refCount: 0 };
-    refs.set(queueName, ref);
+    refs.set(key, ref);
 
     const emit = (
       type: QueueEventMessage["type"],
@@ -82,7 +96,7 @@ export function subscribeQueueEvents(
     ref.refCount--;
     if (ref.refCount === 0) {
       void ref.events.close();
-      refs.delete(queueName);
+      refs.delete(key);
     }
   };
 }

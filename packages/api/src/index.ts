@@ -8,6 +8,16 @@ export { ALLOW_ALL } from "./lib/context.ts";
 export type { CreateQueuesApiHandlerOptions, Handler } from "./lib/handler.ts";
 export { createQueuesApiHandler } from "./lib/handler.ts";
 
+export type {
+  TenantConfig,
+  TenantOptionsInput,
+  NormalizedTenants,
+} from "./lib/tenants.ts";
+export { TenantOptionsError, normalizeTenantOptions } from "./lib/tenants.ts";
+
+export type { Logger, LogLevel } from "./lib/logger.ts";
+export { createConsoleLogger, silentLogger } from "./lib/logger.ts";
+
 export type { AppRouter, AppRouterClient } from "./router.ts";
 export { appRouter } from "./router.ts";
 

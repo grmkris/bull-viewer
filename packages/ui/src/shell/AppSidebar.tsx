@@ -27,6 +27,7 @@ import {
 
 import { useBullViewer } from "../context.tsx";
 import { StatusDot } from "./StatusDot.tsx";
+import { TenantSwitcher } from "./TenantSwitcher.tsx";
 
 interface QueueGroup {
   prefix: string | null;
@@ -86,13 +87,16 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <Link
-          to="/"
-          className="flex items-center gap-2 px-2 py-1.5 font-mono text-sm font-semibold tracking-tight"
-        >
-          <span className="text-signal">●</span>
-          {!collapsed && <span>bull-viewer</span>}
-        </Link>
+        <div className="flex items-center gap-1 px-2 py-1.5">
+          <Link
+            to="/"
+            className="flex items-center gap-2 font-mono text-sm font-semibold tracking-tight"
+          >
+            <span className="text-signal">●</span>
+            {!collapsed && <span>bull-viewer</span>}
+          </Link>
+          {!collapsed && <TenantSwitcher variant="chip" />}
+        </div>
         {!collapsed && (
           <InputGroup className="mt-1">
             <InputGroupAddon>
