@@ -39,8 +39,8 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: bunx changeset publish
-          version: bunx changeset version
+          publish: bun changeset publish
+          version: bun changeset version
           commit: "chore: release"
           title: "chore: release"
         env:
