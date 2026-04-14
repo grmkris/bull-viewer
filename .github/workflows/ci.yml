@@ -26,8 +26,11 @@ jobs:
       - name: Typecheck
         run: bun --filter '*' typecheck
 
+      - name: Lint + format (ultracite type-aware)
+        run: bun run check
+
       - name: Test
-        run: bun --filter @grmkris/bull-viewer-api test
+        run: bun run test
 
       - name: Build UI + bundle guard
         run: bun --filter @grmkris/bull-viewer-ui build

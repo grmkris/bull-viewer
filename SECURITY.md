@@ -13,7 +13,7 @@ I aim to triage within a few days and ship a fix in the next patch release.
 
 In scope:
 
-- `@grmkris/bull-viewer-{core,api,ui,next,standalone}` (this repo)
+- `@grmkris/bull-viewer-{core,api,mcp,ui,next,standalone}` (this repo)
 - The `grmkris/bull-viewer` Docker image
 - Authentication / authorization bugs that let a viewer act outside their
   declared scopes

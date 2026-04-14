@@ -70,7 +70,9 @@ describe("metrics collector + readMetrics", () => {
     await queue.add("metric-job-2", { i: 2 });
     await queue.add("metric-job-3", { i: 3 });
 
-    // Wait for the collector to observe + write the completions.
+    // Wait for the collector to observe + write the completions. 10 s
+    // gives warm-cache CI runners plenty of headroom on top of the usual
+    // sub-second redis-memory-server path.
     await waitFor(
       async () => {
         const result = await readMetrics(registry.connection, QUEUE, {
@@ -80,7 +82,7 @@ describe("metrics collector + readMetrics", () => {
         return total >= 3;
       },
       {
-        timeout: 5000,
+        timeout: 10_000,
         interval: 100,
         message: "collector did not record 3 completions in time",
       }

@@ -20,6 +20,17 @@ import { parseTenantsJson, resolveDefaultTenantId } from "./tenants.ts";
 
 const PORT = Number(process.env.PORT ?? "3000");
 const AUTH_MODE = (process.env.BULL_VIEWER_AUTH_MODE ?? "none") as AuthMode;
+
+/**
+ * Replace the password segment of a Redis connection URL with `***` so
+ * boot-log lines don't leak credentials into whatever log aggregator the
+ * operator is running (Datadog, CloudWatch, Loki, …). Leaves the scheme,
+ * user, host, port, and path untouched. No-ops when the URL has no
+ * password or isn't in `redis://` / `rediss://` form.
+ */
+function redactRedisUrl(url: string): string {
+  return url.replace(/(rediss?:\/\/[^:/@]+:)([^@]+)(@)/, "$1***$3");
+}
 const UI_DIST =
   process.env.BULL_VIEWER_UI_DIST ??
   new URL("../../ui/dist/standalone/", import.meta.url).pathname;
@@ -177,17 +188,23 @@ process.on("SIGTERM", onShutdown);
 serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(`[bull-viewer] listening on http://localhost:${info.port}`);
   if (resolved.length === 1 && resolved[0]!.id === "default") {
-    console.log(`[bull-viewer] redis: ${resolved[0]!.redisUrl}`);
+    console.log(
+      `[bull-viewer] redis: ${redactRedisUrl(resolved[0]!.redisUrl)}`
+    );
     console.log(
       `[bull-viewer] queues: ${resolved[0]!.registry.listQueueNames().join(", ") || "(none)"}`
     );
   } else {
     console.log(`[bull-viewer] tenants:`);
-    const idWidth = Math.max(...resolved.map((t) => t.id.length));
-    const urlWidth = Math.max(...resolved.map((t) => t.redisUrl.length));
-    for (const t of resolved) {
+    const redacted = resolved.map((t) => ({
+      ...t,
+      redactedUrl: redactRedisUrl(t.redisUrl),
+    }));
+    const idWidth = Math.max(...redacted.map((t) => t.id.length));
+    const urlWidth = Math.max(...redacted.map((t) => t.redactedUrl.length));
+    for (const t of redacted) {
       const id = t.id.padEnd(idWidth);
-      const url = t.redisUrl.padEnd(urlWidth);
+      const url = t.redactedUrl.padEnd(urlWidth);
       const count = t.registry.listQueueNames().length;
       const arrow = t.id === defaultTenant ? "→" : " ";
       console.log(`  ${arrow} ${id}  ${url}  ${count} queues`);
