@@ -33,7 +33,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build UI bundle (pre-publish verification)
-        run: bun --filter @grmkris/bull-viewer-ui build
+        run: bun --filter @kristjangrm/bull-viewer-ui build
 
       - name: Create release PR or publish to npm
         id: changesets
@@ -59,7 +59,7 @@ jobs:
         id: version
         run: |
           version=$(echo '${{ needs.release.outputs.publishedPackages }}' \
-            | jq -r '.[] | select(.name == "@grmkris/bull-viewer-standalone") | .version')
+            | jq -r '.[] | select(.name == "@kristjangrm/bull-viewer-standalone") | .version')
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "Publishing Docker image at version ${version}"
 
@@ -78,7 +78,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            grmkris/bull-viewer:${{ steps.version.outputs.version }}
-            grmkris/bull-viewer:latest
+            kristjangrm/bull-viewer:${{ steps.version.outputs.version }}
+            kristjangrm/bull-viewer:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

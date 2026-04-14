@@ -1,24 +1,10 @@
 # syntax=docker/dockerfile:1.7
 
-# ─── deps stage ──────────────────────────────────────────────────────────
-FROM oven/bun:1.3 AS deps
-WORKDIR /app
-COPY package.json bun.lock ./
-COPY packages/core/package.json    packages/core/package.json
-COPY packages/api/package.json     packages/api/package.json
-COPY packages/ui/package.json      packages/ui/package.json
-COPY packages/next/package.json    packages/next/package.json
-COPY packages/standalone/package.json packages/standalone/package.json
-COPY examples/next-embed/package.json   examples/next-embed/package.json
-COPY examples/seed-bullmq/package.json  examples/seed-bullmq/package.json
-RUN bun install --frozen-lockfile
-
 # ─── build stage ─────────────────────────────────────────────────────────
 FROM oven/bun:1.3 AS build
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# UI library + standalone bundle (also runs bundle-guard)
+RUN bun install --frozen-lockfile
 RUN bun --filter @grmkris/bull-viewer-ui build
 
 # ─── runtime stage ───────────────────────────────────────────────────────

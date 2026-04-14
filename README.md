@@ -40,7 +40,7 @@ an embedded route inside your Next.js app — same UI, same RBAC, your auth.
 docker run --rm -p 3000:3000 \
   -e REDIS_URL=redis://host.docker.internal:6379 \
   -e BULL_VIEWER_QUEUES=emails,reports \
-  grmkris/bull-viewer:latest
+  kristjangrm/bull-viewer:latest
 ```
 
 Open <http://localhost:3000>.
@@ -53,7 +53,7 @@ docker run --rm -p 3000:3000 \
     {"id":"prod","label":"Production","redis":"redis://prod:6379","queues":["emails","reports"]},
     {"id":"staging","label":"Staging","redis":"redis://staging:6379","queues":["emails"]}
   ]' \
-  grmkris/bull-viewer:latest
+  kristjangrm/bull-viewer:latest
 ```
 
 A worked-out compose example lives in
