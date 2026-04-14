@@ -34,6 +34,7 @@
   "dependencies": {
     "@grmkris/bull-viewer-api": "workspace:*",
     "@grmkris/bull-viewer-core": "workspace:*",
+    "@grmkris/bull-viewer-mcp": "workspace:*",
     "@grmkris/bull-viewer-ui": "workspace:*",
     "bullmq": "^5.73.4",
     "server-only": "^0.0.1"

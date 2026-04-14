@@ -2,9 +2,11 @@ import "server-only";
 import {
   createQueuesApiHandler,
   type Authorize,
+  type McpRequestHandler,
   type TenantConfig,
 } from "@grmkris/bull-viewer-api";
 import { createRegistry } from "@grmkris/bull-viewer-core/server";
+import { createBullViewerMcpHandler } from "@grmkris/bull-viewer-mcp";
 import type { ConnectionOptions } from "bullmq";
 
 export const runtime = "nodejs";
@@ -41,6 +43,15 @@ export interface CreateQueuesRouteHandlersOptions {
   basePath?: string;
   authorize?: Authorize;
   readOnly?: boolean;
+  /**
+   * Expose the MCP Streamable HTTP endpoint at
+   * `${basePath}/tenants/:id/mcp` (and the legacy `${basePath}/mcp` alias).
+   * Reuses the same `authorize` + scope middleware as the rest of the
+   * dashboard, so AI agents are governed by the same permissions as the UI.
+   *
+   * Default: `true`. Set `false` to disable the MCP endpoint entirely.
+   */
+  mcp?: boolean;
 }
 
 type Handler = (req: Request) => Promise<Response>;
@@ -78,6 +89,9 @@ export function createQueuesRouteHandlers(
 ): QueuesRouteHandlers {
   const multi = buildTenants(options);
 
+  const mcpHandler: McpRequestHandler | undefined =
+    (options.mcp ?? true) ? createBullViewerMcpHandler() : undefined;
+
   const handler = multi
     ? createQueuesApiHandler({
         tenants: multi.tenants,
@@ -85,6 +99,7 @@ export function createQueuesRouteHandlers(
         authorize: options.authorize,
         basePath: options.basePath,
         readOnly: options.readOnly,
+        mcpHandler,
       })
     : createQueuesApiHandler({
         registry: createRegistry({
@@ -94,6 +109,7 @@ export function createQueuesRouteHandlers(
         authorize: options.authorize,
         basePath: options.basePath,
         readOnly: options.readOnly,
+        mcpHandler,
       });
 
   return {
