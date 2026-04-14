@@ -1,6 +1,6 @@
 {
   "name": "@grmkris/bull-viewer-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "BullMQ adapter, registry, and snapshot helpers for bull-viewer",
   "homepage": "https://github.com/grmkris/bull-viewer",
   "license": "MIT",

@@ -1,6 +1,6 @@
 {
   "name": "@grmkris/bull-viewer-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server for bull-viewer. Turns the oRPC router into MCP tools for AI agents (Claude Desktop, Claude Code CLI, Cursor).",
   "keywords": [
     "ai-agent",

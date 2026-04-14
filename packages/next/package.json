@@ -1,6 +1,6 @@
 {
   "name": "@grmkris/bull-viewer-next",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Next.js page + route handlers for embedding bull-viewer",
   "homepage": "https://github.com/grmkris/bull-viewer",
   "license": "MIT",
