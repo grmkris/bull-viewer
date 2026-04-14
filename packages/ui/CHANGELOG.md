@@ -1,5 +1,13 @@
 # @grmkris/bull-viewer-ui
 
+## 0.2.0
+
+### Patch Changes
+
+- Updated dependencies [[`8da78e8`](https://github.com/grmkris/bull-viewer/commit/8da78e89b64cbfeca03a71a728cbe2294a584e7c)]:
+  - @grmkris/bull-viewer-api@0.2.0
+  - @grmkris/bull-viewer-core@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
