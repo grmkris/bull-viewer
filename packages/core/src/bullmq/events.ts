@@ -5,7 +5,7 @@ import type { JobState } from "../types.ts";
 
 export interface QueueEventMessage {
   type:
-    | "added"
+    | "waiting"
     | "active"
     | "completed"
     | "failed"
@@ -78,7 +78,10 @@ export function subscribeQueueEvents(
       }
     };
 
-    events.on("added", (a, id) => emit("added", a, id));
+    // BullMQ's QueueEvents emits `waiting` (not `added`) when a job is
+    // queued without a delay. The previous "added" listener silently
+    // never fired — the test suite caught this.
+    events.on("waiting", (a, id) => emit("waiting", a, id));
     events.on("active", (a, id) => emit("active", a, id));
     events.on("completed", (a, id) => emit("completed", a, id));
     events.on("failed", (a, id) => emit("failed", a, id));

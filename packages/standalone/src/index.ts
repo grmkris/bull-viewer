@@ -1,5 +1,8 @@
 #!/usr/bin/env bun
-import { createQueuesApiHandler, type TenantConfig } from "@grmkris/bull-viewer-api";
+import {
+  createQueuesApiHandler,
+  type TenantConfig,
+} from "@grmkris/bull-viewer-api";
 import {
   createMetricsCollector,
   createRegistry,
@@ -12,28 +15,13 @@ import { serveStatic } from "hono/bun";
 import IORedis from "ioredis";
 
 import { createAuthorize, type AuthMode } from "./auth.ts";
+import { parseTenantsJson, resolveDefaultTenantId } from "./tenants.ts";
 
 const PORT = Number(process.env.PORT ?? "3000");
 const AUTH_MODE = (process.env.BULL_VIEWER_AUTH_MODE ?? "none") as AuthMode;
 const UI_DIST =
   process.env.BULL_VIEWER_UI_DIST ??
   new URL("../../ui/dist/standalone/", import.meta.url).pathname;
-
-/**
- * Multi-tenant config envelope. The standalone server accepts a JSON env
- * var listing every tenant; each tenant becomes its own `(IORedis,
- * QueueRegistry, MetricsCollector)` triple, all served by one handler.
- *
- * If `BULL_VIEWER_TENANTS_JSON` is unset, we fall back to the legacy
- * single-tenant env vars (`REDIS_URL` + `BULL_VIEWER_QUEUES`), which
- * normalize into one synthesized tenant under id `"default"`.
- */
-interface TenantJson {
-  id: string;
-  label?: string;
-  redis: string;
-  queues: string[];
-}
 
 interface ResolvedTenant {
   id: string;
@@ -44,34 +32,11 @@ interface ResolvedTenant {
   redisUrl: string;
 }
 
-function parseTenantsJson(raw: string): TenantJson[] {
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch (err) {
-    throw new Error(
-      `BULL_VIEWER_TENANTS_JSON is not valid JSON: ${(err as Error).message}`
-    );
-  }
-  if (!Array.isArray(parsed)) {
-    throw new Error("BULL_VIEWER_TENANTS_JSON must be a JSON array");
-  }
-  for (const t of parsed as Record<string, unknown>[]) {
-    if (typeof t.id !== "string" || !t.id) {
-      throw new Error("each tenant requires a non-empty `id`");
-    }
-    if (typeof t.redis !== "string" || !t.redis) {
-      throw new Error(`tenant "${String(t.id)}" requires a \`redis\` URL`);
-    }
-    if (!Array.isArray(t.queues) || t.queues.length === 0) {
-      throw new Error(
-        `tenant "${String(t.id)}" requires a non-empty \`queues\` array`
-      );
-    }
-  }
-  return parsed as TenantJson[];
-}
-
+/**
+ * Side-effectful — instantiates IORedis, creates registries + metrics
+ * collectors. Pure parsing/validation lives in `./tenants.ts` (covered by
+ * unit tests). This function only handles the wiring.
+ */
 function resolveTenants(): {
   tenants: Record<string, TenantConfig>;
   resolved: ResolvedTenant[];
@@ -105,13 +70,10 @@ function resolveTenants(): {
         redisUrl: t.redis,
       });
     }
-    const defaultTenant =
-      process.env.BULL_VIEWER_DEFAULT_TENANT ?? resolved[0]!.id;
-    if (!tenants[defaultTenant]) {
-      throw new Error(
-        `BULL_VIEWER_DEFAULT_TENANT="${defaultTenant}" not found in tenants list`
-      );
-    }
+    const defaultTenant = resolveDefaultTenantId(
+      list,
+      process.env.BULL_VIEWER_DEFAULT_TENANT
+    );
     return { tenants, resolved, defaultTenant };
   }
 

@@ -1,4 +1,7 @@
-import { createRegistry, type QueueRegistry } from "@grmkris/bull-viewer-core/server";
+import {
+  createRegistry,
+  type QueueRegistry,
+} from "@grmkris/bull-viewer-core/server";
 import { type Job, type JobsOptions, Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
 
@@ -9,14 +12,59 @@ import IORedis from "ioredis";
  * Returns the same shape `createQueuesApiHandler` consumes in production, so
  * tests can pass it through `buildContext` and exercise the full oRPC
  * middleware chain end-to-end without any fakes.
+ *
+ * `cleanup()` drains every queue, closes the registry, and explicitly
+ * disconnects the underlying ioredis. The latter step is critical: BullMQ
+ * does **not** quit externally-supplied connections on `queue.close()`, so
+ * without this you get noisy `ECONNREFUSED` background errors after the
+ * redis-memory-server shuts down.
  */
 export function createTestRegistry(
   redisUrl: string,
-  queueNames: string[],
-): { registry: QueueRegistry; connection: IORedis } {
+  queueNames: string[]
+): {
+  registry: QueueRegistry;
+  connection: IORedis;
+  cleanup: () => Promise<void>;
+} {
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
+  // Swallow background errors during teardown. BullMQ creates internal
+  // duplicated clients we have no reference to — when the test
+  // redis-memory-server stops, those duplicates emit `error` events with
+  // `ECONNREFUSED`. They're harmless, but bun test treats unhandled
+  // listeners as failures, so absorb them here.
+  connection.on("error", () => {
+    /* swallow during teardown */
+  });
   const registry = createRegistry({ connection, queues: queueNames });
-  return { registry, connection };
+  const cleanup = async () => {
+    for (const queue of registry.getAll().values()) {
+      // Attach a no-op error handler to BullMQ's internal client too, in
+      // case `obliterate()` races a teardown.
+      try {
+        const c = (queue as unknown as { client?: Promise<IORedis> }).client;
+        if (c) {
+          (await c).on("error", () => {
+            /* swallow */
+          });
+        }
+      } catch {
+        /* ignore — older bullmq shapes */
+      }
+      try {
+        await queue.obliterate({ force: true });
+      } catch {
+        /* queue already closed / never had data */
+      }
+    }
+    await registry.close();
+    try {
+      await connection.quit();
+    } catch {
+      connection.disconnect();
+    }
+  };
+  return { registry, connection, cleanup };
 }
 
 /**
@@ -27,7 +75,7 @@ export async function enqueueJob<TData = unknown>(
   queue: Queue,
   name: string,
   data: TData,
-  opts?: JobsOptions,
+  opts?: JobsOptions
 ): Promise<Job<TData>> {
   return await queue.add(name, data as TData, opts);
 }
@@ -43,7 +91,7 @@ export async function enqueueJob<TData = unknown>(
 export function createFailingWorker<TData = unknown>(
   redisUrl: string,
   queueName: string,
-  reason = "intentional test failure",
+  reason = "intentional test failure"
 ): Worker<TData> {
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
   return new Worker<TData>(
@@ -51,7 +99,7 @@ export function createFailingWorker<TData = unknown>(
     () => {
       throw new Error(reason);
     },
-    { connection, autorun: true },
+    { connection, autorun: true }
   );
 }
 
@@ -63,14 +111,13 @@ export function createFailingWorker<TData = unknown>(
 export function createPassingWorker<TData = unknown, TResult = unknown>(
   redisUrl: string,
   queueName: string,
-  result: TResult,
+  result: TResult
 ): Worker<TData, TResult> {
   const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
-  return new Worker<TData, TResult>(
-    queueName,
-    async () => result,
-    { connection, autorun: true },
-  );
+  return new Worker<TData, TResult>(queueName, async () => result, {
+    connection,
+    autorun: true,
+  });
 }
 
 /**
@@ -80,7 +127,7 @@ export function createPassingWorker<TData = unknown, TResult = unknown>(
  */
 export async function waitFor(
   condition: () => boolean | Promise<boolean>,
-  options: { timeout?: number; interval?: number; message?: string } = {},
+  options: { timeout?: number; interval?: number; message?: string } = {}
 ): Promise<void> {
   const timeout = options.timeout ?? 5000;
   const interval = options.interval ?? 50;
@@ -90,7 +137,7 @@ export async function waitFor(
     await new Promise((r) => setTimeout(r, interval));
   }
   throw new Error(
-    options.message ?? `timed out after ${timeout}ms waiting for condition`,
+    options.message ?? `timed out after ${timeout}ms waiting for condition`
   );
 }
 
@@ -99,7 +146,7 @@ export async function waitFor(
  * then close the registry. Pair with `setup.shutdown()` in `afterAll`.
  */
 export async function drainAndCloseRegistry(
-  registry: QueueRegistry,
+  registry: QueueRegistry
 ): Promise<void> {
   for (const queue of registry.getAll().values()) {
     try {

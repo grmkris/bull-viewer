@@ -21,7 +21,8 @@
     "packages/ui/dist",
     "packages/ui/src/components/ui",
     "examples/next-embed/.next",
-    "examples/next-embed/next-env.d.ts"
+    "examples/next-embed/next-env.d.ts",
+    "examples/standalone-docker"
   ],
   "experimentalSortPackageJson": true,
   "experimentalSortImports": {

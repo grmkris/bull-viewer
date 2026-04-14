@@ -1,9 +1,9 @@
 {
   "name": "@grmkris/bull-viewer-test-utils",
   "version": "0.1.0",
+  "private": true,
   "description": "Internal test helpers for the bull-viewer monorepo — disposable Redis + BullMQ factories",
   "license": "MIT",
-  "private": true,
   "type": "module",
   "exports": {
     ".": {

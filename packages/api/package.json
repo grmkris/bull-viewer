@@ -2,20 +2,20 @@
   "name": "@grmkris/bull-viewer-api",
   "version": "0.1.0",
   "description": "oRPC routers, scope middleware, and typed errors for bull-viewer",
+  "homepage": "https://github.com/grmkris/bull-viewer",
   "license": "MIT",
   "author": "Kristjan Grm",
-  "homepage": "https://github.com/grmkris/bull-viewer",
   "repository": {
     "type": "git",
     "url": "https://github.com/grmkris/bull-viewer.git",
     "directory": "packages/api"
   },
-  "type": "module",
   "files": [
     "src",
     "package.json",
     "README.md"
   ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./src/index.ts",

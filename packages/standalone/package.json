@@ -2,9 +2,9 @@
   "name": "@grmkris/bull-viewer-standalone",
   "version": "0.1.0",
   "description": "Hono server fronting BullMQ for the bull-viewer dashboard",
+  "homepage": "https://github.com/grmkris/bull-viewer",
   "license": "MIT",
   "author": "Kristjan Grm",
-  "homepage": "https://github.com/grmkris/bull-viewer",
   "repository": {
     "type": "git",
     "url": "https://github.com/grmkris/bull-viewer.git",
@@ -13,12 +13,12 @@
   "bin": {
     "bull-viewer": "./src/index.ts"
   },
-  "type": "module",
   "files": [
     "src",
     "package.json",
     "README.md"
   ],
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },

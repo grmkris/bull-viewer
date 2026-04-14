@@ -1,4 +1,7 @@
-import { readMetrics, type MetricBucket } from "@grmkris/bull-viewer-core/server";
+import {
+  readMetrics,
+  type MetricBucket,
+} from "@grmkris/bull-viewer-core/server";
 import { z } from "zod";
 
 import { queueProcedure } from "../lib/orpc.ts";

@@ -113,7 +113,8 @@ export function fakeQueue(options: FakeQueueOptions = {}): Queue {
 
   const stub: Partial<Queue> = {
     name,
-    getJobCounts: (async (..._types: string[]) => countsByName) as unknown as Queue["getJobCounts"],
+    getJobCounts: (async (..._types: string[]) =>
+      countsByName) as unknown as Queue["getJobCounts"],
     getJobCountByTypes: (async (..._types: string[]) => {
       let total = 0;
       for (const t of _types) {
@@ -125,7 +126,7 @@ export function fakeQueue(options: FakeQueueOptions = {}): Queue {
       types: string[] | string = [],
       start = 0,
       end = -1,
-      _asc = true,
+      _asc = true
     ) => {
       const typeList = Array.isArray(types) ? types : [types];
       const matched: unknown[] = [];

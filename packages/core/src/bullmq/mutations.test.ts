@@ -1,3 +1,5 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+
 /**
  * Integration tests for `retryJob`, `removeJob`, `promoteJob`,
  * `pauseQueue`, `resumeQueue`, and `bulkAction` against a real
@@ -8,12 +10,11 @@ import {
   createFailingWorker,
   createTestRedisSetup,
   createTestRegistry,
-  drainAndCloseRegistry,
   waitFor,
   type RedisTestSetup,
 } from "@grmkris/bull-viewer-test-utils";
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { Worker } from "bullmq";
+
 import type { QueueRegistry } from "../server.ts";
 import {
   bulkAction,
@@ -26,17 +27,20 @@ import {
 
 let redis: RedisTestSetup;
 let registry: QueueRegistry;
+let cleanup: (() => Promise<void>) | null = null;
 let failingWorker: Worker | null = null;
 const QUEUE = `test-mutations-${crypto.randomUUID().slice(0, 8)}`;
 
 beforeAll(async () => {
   redis = await createTestRedisSetup();
-  registry = createTestRegistry(redis.url, [QUEUE]).registry;
+  const built = createTestRegistry(redis.url, [QUEUE]);
+  registry = built.registry;
+  cleanup = built.cleanup;
 });
 
 afterAll(async () => {
   if (failingWorker) await failingWorker.close();
-  if (registry) await drainAndCloseRegistry(registry);
+  if (cleanup) await cleanup();
   if (redis) await redis.shutdown();
 });
 
@@ -74,7 +78,7 @@ describe("retryJob", () => {
     const job = await queue.add(
       "will-fail",
       {},
-      { attempts: 1, jobId: "retry-target" },
+      { attempts: 1, jobId: "retry-target" }
     );
     await queue.resume();
     // Wait for the worker to mark it failed.
@@ -119,7 +123,7 @@ describe("promoteJob", () => {
     const job = await queue.add(
       "delayed-task",
       {},
-      { delay: 60_000, jobId: "promote-target" },
+      { delay: 60_000, jobId: "promote-target" }
     );
     expect(await job.getState()).toBe("delayed");
     const result = await promoteJob(queue, String(job.id));

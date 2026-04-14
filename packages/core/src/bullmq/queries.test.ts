@@ -1,3 +1,5 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+
 /**
  * Integration tests against a real `redis-memory-server`. Validates that
  * `getQueueSnapshot`, `listJobs`, `getJob` correctly map BullMQ Queue API
@@ -7,28 +9,29 @@
 import {
   createTestRedisSetup,
   createTestRegistry,
-  drainAndCloseRegistry,
   type RedisTestSetup,
 } from "@grmkris/bull-viewer-test-utils";
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+
 import type { QueueRegistry } from "../server.ts";
 import { getJob, getQueueSnapshot, listJobs } from "./queries.ts";
 
 // One redis-memory-server per file. Bun test isolates module state per
-// file, so the `getSharedRedisSetup()` helper can't actually share across
-// them — and trying to does cause port collisions. Per-file boot is ~1s
-// after the binary is cached.
+// file, so a "shared" redis pattern across files doesn't actually share —
+// per-file boot is ~1s once the binary is cached.
 let redis: RedisTestSetup;
 let registry: QueueRegistry;
+let cleanup: (() => Promise<void>) | null = null;
 const QUEUE = `test-queries-${crypto.randomUUID().slice(0, 8)}`;
 
 beforeAll(async () => {
   redis = await createTestRedisSetup();
-  registry = createTestRegistry(redis.url, [QUEUE]).registry;
+  const built = createTestRegistry(redis.url, [QUEUE]);
+  registry = built.registry;
+  cleanup = built.cleanup;
 });
 
 afterAll(async () => {
-  if (registry) await drainAndCloseRegistry(registry);
+  if (cleanup) await cleanup();
   if (redis) await redis.shutdown();
 });
 
@@ -129,7 +132,7 @@ describe("getJob", () => {
     const job = await queue.add(
       "single-lookup",
       { payload: { n: 42 } },
-      { jobId: "fixed-id-for-lookup" },
+      { jobId: "fixed-id-for-lookup" }
     );
     const snap = await getJob(queue, String(job.id));
     expect(snap).not.toBeNull();

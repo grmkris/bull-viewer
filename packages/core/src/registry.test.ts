@@ -6,6 +6,7 @@
  * `connection.options` / object identity. Tests run in milliseconds.
  */
 import { afterEach, describe, expect, test } from "bun:test";
+
 import IORedis from "ioredis";
 
 import { closeAllRegistries, createRegistry } from "./registry.ts";
