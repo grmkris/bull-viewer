@@ -10,6 +10,8 @@
   "scripts": {
     "typecheck": "bun --filter '*' typecheck",
     "lint": "bun --filter '*' lint",
+    "test": "bun --filter '@grmkris/bull-viewer-*' test",
+    "test:watch": "bun --filter '@grmkris/bull-viewer-*' test:watch",
     "check": "ultracite check --type-aware --type-check",
     "fix": "ultracite fix --type-aware --type-check",
     "fix:unsafe": "ultracite fix --unsafe --type-aware --type-check",
@@ -22,10 +24,13 @@
   "devDependencies": {
     "@changesets/changelog-github": "^0.6.0",
     "@changesets/cli": "^2.30.0",
+    "@types/bun": "^1.3.12",
     "@typescript/native-preview": "7.0.0-dev.20260413.1",
     "oxfmt": "^0.44.0",
     "oxlint": "^1.59.0",
     "oxlint-tsgolint": "^0.20.0",
+    "prettier": "^3.8.2",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "shadcn": "^4.2.0",
     "typescript": "^5.9.3",
     "ultracite": "^7.5.6"
