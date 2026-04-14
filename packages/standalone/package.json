@@ -1,6 +1,6 @@
 {
   "name": "@grmkris/bull-viewer-standalone",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Hono server fronting BullMQ for the bull-viewer dashboard",
   "homepage": "https://github.com/grmkris/bull-viewer",
   "license": "MIT",
